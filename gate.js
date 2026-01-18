@@ -1,30 +1,34 @@
 (() => {
+  // ===== 便利：要素取得
+  const $ = (sel) => document.querySelector(sel);
+  const byId = (id) => document.getElementById(id);
+
   /* ===============================
      基本取得
   =============================== */
-  const gate = document.querySelector(".spot--gate");
+  const gate = $(".spot--gate");
   if (!gate) return;
 
   const baseImg = gate.querySelector(".spot__base");
   const iconImg = gate.querySelector(".spot__icon");
 
-  const modal  = document.getElementById("gateModal");
-  const mPhoto = document.getElementById("gateModalPhoto");
-  const mTitle = document.getElementById("gateModalTitle");
-  const mDesc  = document.getElementById("gateModalDesc");
-  const btnGo  = document.getElementById("gateModalGo");
-  const btnCancel = document.getElementById("gateModalCancel");
+  const modal  = byId("gateModal");
+  const mPhoto = byId("gateModalPhoto");
+  const mTitle = byId("gateModalTitle");
+  const mDesc  = byId("gateModalDesc");
+  const btnGo  = byId("gateModalGo");
+  const btnCancel = byId("gateModalCancel");
 
-  const craftClaim = document.getElementById("craftClaim");
-  const craftNick  = document.getElementById("craftNick");
-  const craftGetBtn = document.getElementById("craftGetBtn");
-  const craftResult = document.getElementById("craftResult");
-  const craftResultText = document.getElementById("craftResultText");
+  const craftClaim = byId("craftClaim");
+  const craftNick  = byId("craftNick");
+  const craftGetBtn = byId("craftGetBtn");
 
-  // ★ HTMLに用意した画像ボタン（あなたのHTMLはcraftImgBtn）
-  const craftImgBtn = document.getElementById("craftImgBtn");
-  let craftImgWrap = document.getElementById("craftImgWrap");
-  let craftImgPreview = document.getElementById("craftImgPreview");
+  const craftResult = byId("craftResult");
+  const craftResultText = byId("craftResultText");
+
+  const craftImgBtn = byId("craftImgBtn");
+  const craftImgWrap = byId("craftImgWrap");
+  const craftImgPreview = byId("craftImgPreview");
 
   const isNight = () => document.documentElement.classList.contains("is-night");
 
@@ -51,28 +55,22 @@
   };
 
   /* ===============================
-     ★ 職人タイム判定（5分過ぎたら自動リセット）
-     ・一度終わっても、次に表示した瞬間からまた5分が始まる
+     ★ 職人タイム（5分過ぎたら自動リセット）
   =============================== */
   function isCraftTime(){
     const now = Date.now();
-    const LIMIT = 5 * 60 * 1000; // 5分
+    const LIMIT = 5 * 60 * 1000;
 
-    let start = localStorage.getItem("craft_start_time");
+    const k = "craft_start_time";
+    let start = localStorage.getItem(k);
 
-    // 開始時刻が無い → 今から開始
     if (!start){
-      localStorage.setItem("craft_start_time", String(now));
+      localStorage.setItem(k, String(now));
       return true;
     }
+    if (now - Number(start) < LIMIT) return true;
 
-    // 5分以内 → 継続
-    if (now - Number(start) < LIMIT){
-      return true;
-    }
-
-    // 5分超え → リセットして終了
-    localStorage.removeItem("craft_start_time");
+    localStorage.removeItem(k);
     return false;
   }
 
@@ -94,14 +92,18 @@
   /* ===============================
      モーダル
   =============================== */
-  function renderCraftPanel(dest){
+  function resetCraftUI(dest){
     if (!craftClaim) return;
 
     craftClaim.style.display = dest.isCraft ? "block" : "none";
 
-    if (craftResult) craftResult.style.display = "none";
-    if (craftImgWrap) craftImgWrap.style.display = "none";
     if (craftNick) craftNick.value = "";
+
+    // 結果と画像周りは毎回リセット
+    if (craftResult) craftResult.style.display = "none";
+    if (craftResultText) craftResultText.textContent = "";
+    if (craftImgWrap) craftImgWrap.style.display = "none";
+    if (craftImgBtn) craftImgBtn.style.display = "none"; // ★取得後にだけ表示
   }
 
   function openModal(dest){
@@ -112,16 +114,14 @@
 
     if (mPhoto) mPhoto.src = dest.photo;
     if (mTitle) mTitle.textContent = dest.isCraft ? "職人の祭壇" : "たこ焼きゲート";
-
     if (mDesc){
       mDesc.textContent = dest.isCraft
         ? "今だけ5分間のレア祭壇です。\n取得しますか？"
         : "たこ焼きページへ移動しますか？";
     }
-
     if (btnGo) btnGo.href = dest.url;
 
-    renderCraftPanel(dest);
+    resetCraftUI(dest);
 
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
@@ -133,17 +133,15 @@
     modal.setAttribute("aria-hidden", "true");
   }
 
-  if (btnCancel) btnCancel.onclick = closeModal;
-  if (modal) modal.onclick = (e) => { if (e.target === modal) closeModal(); };
+  if (btnCancel) btnCancel.addEventListener("click", closeModal);
+  if (modal) modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
 
   /* ===============================
-     職人取得処理（端末内）
-     ・同じ端末で「その日その職人は1回だけ」
+     取得：同端末・同日・同職人 1回
   =============================== */
   function todayKey(){
     return new Date().toISOString().slice(0,10);
   }
-
   function claimedKey(craftId){
     return `craft_claimed_${todayKey()}_${craftId}`;
   }
@@ -153,26 +151,32 @@
   function setClaimedText(craftId, text){
     localStorage.setItem(claimedKey(craftId), text);
   }
-
-  // 端末内カウント（ただし取得1回制なので基本001）
   function nextSerial(id){
     const key = `craft_serial_${todayKey()}_${id}`;
     const n = (Number(localStorage.getItem(key)) || 0) + 1;
     localStorage.setItem(key, n);
-    return String(n).padStart(3,"0");
+    return String(n).padStart(3, "0");
+  }
+
+  function showResult(text){
+    if (!craftResult || !craftResultText) return;
+
+    craftResultText.textContent = text;
+    craftResult.style.display = "block";
+
+    // ★ 取得後にだけX画像ボタン表示
+    if (craftImgBtn) craftImgBtn.style.display = "block";
   }
 
   if (craftGetBtn){
-    craftGetBtn.onclick = () => {
+    craftGetBtn.addEventListener("click", () => {
       const dest = gate._dest;
       if (!dest || !dest.isCraft) return;
 
-      // すでに取得済みなら再取得禁止
       const already = getClaimedText(dest.craftId);
       if (already){
         alert("この端末では本日すでに取得済みです（再取得はできません）");
-        if (craftResultText) craftResultText.textContent = already;
-        if (craftResult) craftResult.style.display = "block";
+        showResult(already);
         return;
       }
 
@@ -190,67 +194,34 @@
 
 #たこ焼きトレカ #たこ焼きゲート`;
 
-      // 取得済みとして保存
       setClaimedText(dest.craftId, text);
-
-      if (craftResultText) craftResultText.textContent = text;
-      if (craftResult) craftResult.style.display = "block";
-    };
+      showResult(text);
+    });
   }
 
   /* ===============================
-     X用画像を作って保存を促す（スクショ代わり）
+     X用画像生成（html2canvas）
   =============================== */
-  function ensureImageArea(){
-    // HTMLに既にあるならそれを使う（あなたのHTMLはある想定）
-    if (craftImgWrap && craftImgPreview) return;
-
-    // 無い場合だけ自動生成（保険）
-    if (!craftResult) return;
-
-    craftImgWrap = document.createElement("div");
-    craftImgWrap.id = "craftImgWrap";
-    craftImgWrap.style.marginTop = "10px";
-    craftImgWrap.style.display = "none";
-
-    craftImgPreview = document.createElement("img");
-    craftImgPreview.id = "craftImgPreview";
-    craftImgPreview.alt = "X用画像プレビュー";
-    craftImgPreview.style.maxWidth = "100%";
-    craftImgPreview.style.imageRendering = "pixelated";
-
-    const note = document.createElement("div");
-    note.textContent = "※画像を長押し（スマホ）/右クリック（PC）→「画像を保存」してね";
-    note.style.fontSize = "12px";
-    note.style.opacity = "0.85";
-    note.style.marginTop = "6px";
-
-    craftImgWrap.appendChild(craftImgPreview);
-    craftImgWrap.appendChild(note);
-    craftResult.appendChild(craftImgWrap);
-  }
-
   async function makeShareImage(){
-    ensureImageArea();
-
     if (!craftResult || !craftResultText) return;
 
     const txt = craftResultText.textContent.trim();
     if (!txt){
-      alert("先に『取得』して結果を出してね。");
+      alert("先に『取得する』を押してね。");
       return;
     }
 
     if (typeof window.html2canvas !== "function"){
-      alert("html2canvas が読み込めていません。HTMLにscriptを追加してね。");
+      alert("html2canvas が読み込めていません。scriptタグを確認してね。");
       return;
     }
 
+    // 画像化前に表示（念のため）
     craftResult.style.display = "block";
 
+    // 見栄え用（背景）
     const prevBg = craftResult.style.backgroundColor;
     const prevPad = craftResult.style.padding;
-
     craftResult.style.backgroundColor = prevBg || "#000";
     craftResult.style.padding = prevPad || "12px";
 
@@ -261,6 +232,7 @@
       allowTaint: true
     });
 
+    // 戻す
     craftResult.style.backgroundColor = prevBg;
     craftResult.style.padding = prevPad;
 
@@ -271,7 +243,7 @@
       craftImgWrap.style.display = "block";
     }
 
-    alert("X用画像を作ったよ！画像を長押し/右クリックして保存して、Xに貼ってね。");
+    alert("画像を作ったよ！画像を長押し/右クリックして保存して、Xに貼ってね。");
   }
 
   if (craftImgBtn){
@@ -288,7 +260,7 @@
   applyIcon();
 
   new MutationObserver(applyBase)
-    .observe(document.documentElement,{attributes:true});
+    .observe(document.documentElement, { attributes:true });
 
   setInterval(applyIcon, 1000);
 
@@ -297,3 +269,4 @@
     openModal(gate._dest);
   });
 })();
+
