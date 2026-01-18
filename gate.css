@@ -5,7 +5,7 @@
   position: absolute;
   top: 68%;
   left: 52%;
-  transform: translate(-50%, -100%);
+  transform: translate(-50%, -50%);
   width: clamp(124px, 12vw, 250px);
   z-index: 40;
   background: transparent;
@@ -78,13 +78,4 @@
   background: #fff;
   color: #000;
   border-color: transparent;
-}
-/* ===== 強制上書きテスト（当たってるか確認） ===== */
-.spot.spot--gate{
-  position: absolute !important;
-  top: 68% !important;     /* ← あなたの基準値 */
-  left: 52% !important;
-  transform: translate(-50%, -50%) !important; /* ← 変化が出るはず */
-  outline: 4px solid lime !important;          /* ← 当たったら緑枠が出る */
-  z-index: 99999 !important;
 }
