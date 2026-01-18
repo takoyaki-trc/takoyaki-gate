@@ -1,5 +1,4 @@
 
-<script>
 (() => {
   const isNight = () => document.documentElement.classList.contains("is-night");
 
@@ -103,7 +102,7 @@
     openModal(dest);
   });
 })();
-</script>
+
 
 
 
