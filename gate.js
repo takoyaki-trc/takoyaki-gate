@@ -1,14 +1,13 @@
 (() => {
-  // ===== 設定 =====
-  const isNight = () => document.documentElement.classList.contains("is-night");
-
+  /* ===============================
+     基本取得
+  =============================== */
   const gate = document.querySelector(".spot--gate");
   if (!gate) return;
 
   const baseImg = gate.querySelector(".spot__base");
   const iconImg = gate.querySelector(".spot__icon");
 
-  // モーダル要素
   const modal  = document.getElementById("gateModal");
   const mPhoto = document.getElementById("gateModalPhoto");
   const mTitle = document.getElementById("gateModalTitle");
@@ -16,20 +15,51 @@
   const btnGo  = document.getElementById("gateModalGo");
   const btnCancel = document.getElementById("gateModalCancel");
 
-  // ★ photo は必ず「https://」の絶対URLにするのが安全
-  const DEST = [
-    { hours:[0,6],   name:"すっぴん",     url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/G9HOojAP.png",  photo:"https://ul.h3z.jp/zqoEDppD.jpg" },
-    { hours:[6,12],  name:"ねぎ味噌",     url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/8ipISSBp.png",  photo:"https://ul.h3z.jp/hqi2ldka.jpg" },
-    { hours:[12,18], name:"めんたいマヨ", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/IShYv1or.png",  photo:"https://ul.h3z.jp/uJT6MP7r.jpg" },
-    { hours:[18,21], name:"夜の店ページ", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/UHcLPRSi.png",  photo:"https://ul.h3z.jp/uJT6MP7r.jpg" },
-    { hours:[21,24], name:"夜の店ページ", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/lLEWj0Pu.png",  photo:"https://ul.h3z.jp/uJT6MP7r.jpg" }
-  ];
+  const craftClaim = document.getElementById("craftClaim");
+  const craftNick  = document.getElementById("craftNick");
+  const craftGetBtn = document.getElementById("craftGetBtn");
+  const craftResult = document.getElementById("craftResult");
+  const craftResultText = document.getElementById("craftResultText");
+  const craftCopyBtn = document.getElementById("craftCopyBtn");
 
-  const pickDest = (d = new Date()) => {
-    const h = d.getHours();
-    return DEST.find(x => h >= x.hours[0] && h < x.hours[1]) || DEST[0];
+  const isNight = () =>
+    document.documentElement.classList.contains("is-night");
+
+  /* ===============================
+     通常ゲート
+  =============================== */
+  const NORMAL_DEST = {
+    name: "たこ焼きゲート",
+    url: "https://takoyakinana.1net.jp/",
+    icon: "https://ul.h3z.jp/G9HOojAP.png",
+    photo: "https://ul.h3z.jp/zqoEDppD.jpg"
   };
 
+  /* ===============================
+     職人祭壇（今から5分）
+  =============================== */
+  const CRAFT_DEST = {
+    isCraft: true,
+    craftId: "craft_now_001",
+    name: "🔥 職人の祭壇 🔥",
+    url: "https://takoyakinana.1net.jp/",
+    icon: "https://ul.h3z.jp/G9HOojAP.png",
+    photo: "https://ul.h3z.jp/zqoEDppD.jpg"
+  };
+
+  function isCraftTime(){
+    const now = Date.now();
+    let start = localStorage.getItem("craft_start_time");
+    if (!start){
+      start = String(now);
+      localStorage.setItem("craft_start_time", start);
+    }
+    return now - Number(start) < 5 * 60 * 1000;
+  }
+
+  /* ===============================
+     表示切替
+  =============================== */
   function applyBase(){
     if (!baseImg) return;
     const url = isNight() ? baseImg.dataset.night : baseImg.dataset.day;
@@ -37,71 +67,108 @@
   }
 
   function applyIcon(){
-    const dest = pickDest();
-    if (iconImg && dest.icon) iconImg.src = dest.icon;
+    const dest = isCraftTime() ? CRAFT_DEST : NORMAL_DEST;
     gate._dest = dest;
+    if (iconImg) iconImg.src = dest.icon;
+  }
+
+  /* ===============================
+     モーダル
+  =============================== */
+  function renderCraftPanel(dest){
+    if (!craftClaim) return;
+    craftClaim.style.display = dest.isCraft ? "block" : "none";
+    if (craftResult) craftResult.style.display = "none";
+    if (craftNick) craftNick.value = "";
   }
 
   function openModal(dest){
-    // モーダルが無い場合は直で飛ぶ（保険）
     if (!modal) {
       window.open(dest.url, "_blank", "noopener");
       return;
     }
 
-    if (mPhoto){
-      mPhoto.src = dest.photo || "";
-      mPhoto.alt = dest.name ? `たこ焼き写真：${dest.name}` : "たこ焼き写真";
+    if (mPhoto) mPhoto.src = dest.photo;
+    if (mTitle) mTitle.textContent = dest.isCraft ? "職人の祭壇" : "たこ焼きゲート";
+    if (mDesc){
+      mDesc.textContent = dest.isCraft
+        ? "今だけ5分間のレア祭壇です。\n取得しますか？"
+        : "たこ焼きページへ移動しますか？";
     }
-
-    if (mTitle) mTitle.textContent = "たこ焼きゲート";
-    if (mDesc)  mDesc.textContent  = `この時間の行き先：${dest.name}\n行きますか？`;
-
     if (btnGo) btnGo.href = dest.url;
+
+    renderCraftPanel(dest);
 
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
   }
 
   function closeModal(){
-    if (!modal) return;
     modal.classList.remove("is-open");
     modal.setAttribute("aria-hidden", "true");
   }
 
-  // モーダル閉じる
-  if (btnCancel) btnCancel.addEventListener("click", closeModal);
-  if (modal) modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+  if (btnCancel) btnCancel.onclick = closeModal;
+  if (modal) modal.onclick = e => { if (e.target === modal) closeModal(); };
 
-  // 初期
+  /* ===============================
+     職人取得処理（端末内）
+  =============================== */
+  function todayKey(){
+    return new Date().toISOString().slice(0,10);
+  }
+
+  function nextSerial(id){
+    const key = `craft_serial_${todayKey()}_${id}`;
+    const n = (Number(localStorage.getItem(key)) || 0) + 1;
+    localStorage.setItem(key, n);
+    return String(n).padStart(3,"0");
+  }
+
+  if (craftGetBtn){
+    craftGetBtn.onclick = () => {
+      const dest = gate._dest;
+      if (!dest.isCraft) return;
+
+      const nick = craftNick.value.trim();
+      if (!nick) return alert("ニックネームを入れてください");
+
+      const serial = nextSerial(dest.craftId);
+      const time = new Date().toLocaleString("ja-JP");
+
+      const text =
+`【職人レア枠 取得】
+取得日時：${time}
+取得No：${serial}
+ニックネーム：${nick}
+
+#たこ焼きトレカ #たこ焼きゲート`;
+
+      craftResultText.textContent = text;
+      craftResult.style.display = "block";
+    };
+  }
+
+  if (craftCopyBtn){
+    craftCopyBtn.onclick = () => {
+      navigator.clipboard.writeText(craftResultText.textContent);
+      alert("コピーしました");
+    };
+  }
+
+  /* ===============================
+     初期化
+  =============================== */
   applyBase();
   applyIcon();
 
-  // 昼夜切替監視（htmlのclassが変わったら土台差し替え）
-  new MutationObserver((muts) => {
-    for (const m of muts){
-      if (m.attributeName === "class"){
-        applyBase();
-        break;
-      }
-    }
-  }).observe(document.documentElement, { attributes: true });
+  new MutationObserver(applyBase)
+    .observe(document.documentElement,{attributes:true});
 
-  // 1分ごとに時間帯更新
-  let lastName = pickDest().name;
-  setInterval(() => {
-    const now = pickDest().name;
-    if (now !== lastName){
-      lastName = now;
-      applyIcon();
-    }
-  }, 60 * 1000);
+  setInterval(applyIcon, 1000);
 
-  // クリック：モーダル表示
-  gate.addEventListener("click", (e) => {
-    e.preventDefault?.();
-    const dest = gate._dest || pickDest();
-    openModal(dest);
+  gate.addEventListener("click", e => {
+    e.preventDefault();
+    openModal(gate._dest);
   });
 })();
