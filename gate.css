@@ -15,14 +15,14 @@
   touch-action: manipulation;
 }
 
-.map-wrap .spot--gate.spot__base,
-.map-wrap .spot--gate.spot__icon{
+/* 土台＆アイコン画像（buttonの中のimg） */
+.map-wrap .spot--gate .spot__base,
+.map-wrap .spot--gate .spot__icon{
   width: 100%;
   height: auto;
   display: block;
   image-rendering: pixelated;
 }
-
 /* ここを「親の基準」にしたいので、spot自体を基準化 */
 .map-wrap .spot{ position:absolute; }
 .map-wrap .spot--gate{ top: 68%; left: 52%; }
