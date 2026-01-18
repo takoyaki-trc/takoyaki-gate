@@ -43,8 +43,8 @@
   }
 
   function openModal(dest){
+    // モーダルが無い場合は直で飛ぶ（保険）
     if (!modal) {
-      // モーダルが無い場合は直で飛ぶ（保険）
       window.open(dest.url, "_blank", "noopener");
       return;
     }
@@ -88,22 +88,19 @@
     }
   }).observe(document.documentElement, { attributes: true });
 
-  // 1分ごとに「時間帯」が変わったら更新
-  let lastBucket = null;
+  // 1分ごとに時間帯更新
+  let lastName = pickDest().name;
   setInterval(() => {
-    const d = pickDest();
-    const bucket = d && d.name ? d.name : "x";
-    if (bucket !== lastBucket){
-      lastBucket = bucket;
+    const now = pickDest().name;
+    if (now !== lastName){
+      lastName = now;
       applyIcon();
     }
   }, 60 * 1000);
 
-  // クリック：モーダル表示（ワンクッション）
+  // クリック：モーダル表示
   gate.addEventListener("click", (e) => {
-    // buttonなので通常は不要だけど、念のため
     e.preventDefault?.();
-
     const dest = gate._dest || pickDest();
     openModal(dest);
   });
