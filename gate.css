@@ -3,7 +3,7 @@
 
 .map-wrap .spot.spot--gate{
   position: absolute;
-  top: 68%;
+  top: 80%;
   left: 52%;
   transform: translate(-50%, -100%);
   width: clamp(124px, 12vw, 250px);
