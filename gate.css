@@ -79,5 +79,3 @@
   color: #000;
   border-color: transparent;
 }
-/* ★読み込みテスト：祭壇に太い緑枠が出ればCSSは生きてる */
-.spot.spot--gate{ outline: 6px solid lime !important; }
