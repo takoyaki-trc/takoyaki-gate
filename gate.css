@@ -1,7 +1,7 @@
 
 
 /* ===== ゲート（建物） ===== */
-.map-wrap .spot{
+.map-wrap .spot--gate{
   position: absolute;
   display: block;
   transform: translate(-50%, -100%);
@@ -15,8 +15,8 @@
   touch-action: manipulation;
 }
 
-.map-wrap .spot__base,
-.map-wrap .spot__icon{
+.map-wrap .spot--gate.spot__base,
+.map-wrap .spot--gate.spot__icon{
   width: 100%;
   height: auto;
   display: block;
