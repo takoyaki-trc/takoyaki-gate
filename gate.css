@@ -28,7 +28,7 @@
 .map-wrap .spot--gate .spot__icon{
   position: absolute;
   left: 50%;
-  top: 60%;
+  top: 65%;
   transform: translate(-50%, -50%);
   width: 55%;
   height: auto;
