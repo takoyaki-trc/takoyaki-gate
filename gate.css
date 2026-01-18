@@ -42,4 +42,73 @@
 }
 
 /* （保険）画像クリックで変な選択が起きないように */
-.map-wra
+.map-wrap .spot--gate img{
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* ===== モーダル ===== */
+.gate-modal{
+  position: fixed;
+  inset: 0;
+  display: none;
+  place-items: center;
+  background: rgba(0,0,0,.65);
+  z-index: 9999;
+  padding: 16px;
+}
+.gate-modal.is-open{ display: grid; }
+
+.gate-modal__panel{
+  width: min(520px, 92vw);
+  background: #111;
+  color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45);
+}
+
+.gate-modal__photo{
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.gate-modal__body{
+  padding: 12px 14px 14px;
+}
+
+.gate-modal__title{
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.gate-modal__desc{
+  white-space: pre-line;
+  line-height: 1.45;
+  opacity: .95;
+}
+
+.gate-modal__btns{
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.gate-modal__btn{
+  flex: 1;
+  text-align: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.2);
+  background: transparent;
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.gate-modal__btn--go{
+  background: #fff;
+  color: #000;
+  border-color: transparent;
+}
