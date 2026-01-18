@@ -1,3 +1,20 @@
+/* モーダル写真がはみ出すのを防ぐ */
+.gate-modal__photo{
+  width: 100%;
+  height: auto;
+  max-height: 38vh;      /* ここで高さを制限（好みで調整OK） */
+  object-fit: contain;   /* 画像が切れずに収まる */
+  display: block;
+}
+
+/* パネル自体がはみ出した時も切らない */
+.gate-modal__panel{
+  max-height: 90vh;
+  overflow: auto;
+}
+
+
+
 /* ===== たこ焼きゲート（祭壇） ===== */
 .map-wrap{
   position: relative;
