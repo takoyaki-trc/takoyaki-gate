@@ -103,4 +103,14 @@
   color: #000;
   border-color: transparent;
 }
+/* ===== 画像救出（必ず表示） ===== */
+.map-wrap .spot--gate .spot__base{
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+}
+.map-wrap .spot--gate .spot__icon{
+  display: block !important;
+  height: auto !important;
+}
 
