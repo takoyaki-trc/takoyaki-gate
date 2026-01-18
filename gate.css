@@ -5,7 +5,7 @@
   position: absolute;
   top: 68%;
   left: 52%;
-  transform: translate(-50%, 100%);
+  transform: translate(-50%, -100%);
   width: clamp(124px, 12vw, 250px);
   z-index: 40;
   background: transparent;
