@@ -1,1 +1,86 @@
+/* ==========================
+   Takoyaki Fishing - CSS
+   ========================== */
 
+.takofish-wrap{
+  width: min(520px, 100%);
+  margin: 12px auto;
+  padding: 12px;
+  border: 3px solid #111;
+  background: #fff;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.takofish-head{ margin-bottom: 10px; }
+.takofish-title{ font-weight: 800; font-size: 18px; }
+.takofish-sub{ font-size: 12px; opacity: .8; margin-top: 2px; }
+
+.takofish-ui{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0 10px;
+}
+
+.takofish-btn{
+  appearance: none;
+  border: 2px solid #111;
+  background: #f3f3f3;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 10px;
+}
+.takofish-btn[disabled]{ opacity: .45; cursor: not-allowed; }
+
+.takofish-stats{
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  align-items: center;
+}
+
+.takofish-canvasbox{
+  position: relative;
+  width: 100%;
+  border: 3px solid #111;
+  background: #0a1020;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* canvasはレスポンシブで縮む */
+#tfCanvas{
+  width: 100%;
+  height: auto;
+  display: block;
+  image-rendering: pixelated;
+  touch-action: none; /* ここ重要：スマホ操作を邪魔しない */
+}
+
+.takofish-overlay{
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,.55);
+}
+.takofish-panel{
+  width: min(360px, 90%);
+  border: 3px solid #fff;
+  background: #000;
+  color: #fff;
+  padding: 12px;
+  border-radius: 12px;
+}
+.takofish-panel-title{ font-weight: 900; margin-bottom: 6px; }
+.takofish-panel-text{ font-size: 13px; line-height: 1.5; opacity: .95; }
+.takofish-panel-hint{ font-size: 11px; opacity: .75; margin-top: 8px; }
+
+.takofish-note{
+  font-size: 11px;
+  opacity: .8;
+  margin-top: 8px;
+}
