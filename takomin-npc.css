@@ -16,7 +16,7 @@
   flex-wrap:nowrap !important;         /* ←スマホでも折り返し禁止 */
   align-items:flex-start !important;   /* ←上揃え */
   gap:8px;
-  width:min(520px, 100%);              /* ←画面内に収める */
+  width:min(520px, 100%);
   box-sizing:border-box;
 
   --npc-size: 40px;                    /* ★タコ民は全て40px */
@@ -34,16 +34,16 @@
 
 .takomin-avatar img{
   width:var(--npc-size) !important;
-  height:var(--npc-size) !important;   /* ★縦も固定 */
-  object-fit:contain;                  /* 画像比率が違っても収める */
+  height:var(--npc-size) !important;
+  object-fit:contain;
   display:block;
   image-rendering:pixelated;
 }
 
-/* ===== 横テキスト（壊れない） ===== */
+/* ===== 横テキスト（黒バー本体：常に表示してチラつかない） ===== */
 .takomin-text{
   flex:1 1 auto !important;
-  min-width:0 !important;              /* ★これがないとスマホで崩れやすい */
+  min-width:0 !important;
   max-width:100%;
   padding:6px 10px;
   background:#000;
@@ -53,11 +53,21 @@
   font-family:"DotGothic16","PixelMplus10",monospace;
   box-sizing:border-box;
   word-break:break-word;
+
+  /* ▼ 黒バーは消さない（フェード対象にしない） */
+  opacity:1 !important;
 }
 
-/* ===== フェード（JS用） ===== */
-.fade-out{ opacity:0; transition:opacity .2s ease; }
-.fade-in{ opacity:1; transition:opacity .2s ease; }
+/* ===== 文字だけフェード（JSは #takominLine に fade-in/out を付ける） ===== */
+#takominLine{
+  display:block;
+  opacity:1;
+  transition:opacity .2s ease;
+}
+
+/* ▼ fadeクラスは #takominLine にだけ効かせる（黒バーがチラつかない） */
+#takominLine.fade-out{ opacity:0; }
+#takominLine.fade-in { opacity:1; }
 
 /* ===== スマホ微調整（横並びは維持） ===== */
 @media (max-width:480px){
