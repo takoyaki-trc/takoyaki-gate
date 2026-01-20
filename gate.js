@@ -35,6 +35,17 @@
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   }
 
+  // JSTで「取得日時」表示（見やすく：YYYY/MM/DD HH:MM）
+  function jstStampHM(){
+    const now = new Date();
+    const y = now.getFullYear();
+    const mo = String(now.getMonth()+1).padStart(2,"0");
+    const da = String(now.getDate()).padStart(2,"0");
+    const h = String(now.getHours()).padStart(2,"0");
+    const mi = String(now.getMinutes()).padStart(2,"0");
+    return `${y}/${mo}/${da} ${h}:${mi}`;
+  }
+
   function isCraftTime(){
     const now = Date.now();
     const k = "craft_start_time";
@@ -69,7 +80,6 @@
   const btnCancel = byId("gateModalCancel");
 
   const craftClaim = byId("craftClaim");
-  const craftNick  = byId("craftNick"); // HTMLに残っててもOK（使わない）
   const craftGetBtn = byId("craftGetBtn");
 
   const craftResult = byId("craftResult");
@@ -78,7 +88,6 @@
   const craftImgBtn = byId("craftImgBtn");
   const craftImgWrap = byId("craftImgWrap");
 
-  // 必須チェック（最低限）
   if (!modal || !craftClaim || !craftGetBtn || !craftResult || !craftResultText) return;
 
   /* ===============================
@@ -105,14 +114,11 @@
   function resetCraftUI(dest){
     craftClaim.style.display = dest.isCraft ? "block" : "none";
 
-    // 入力欄は使わないが、残っている場合は初期化だけ
-    if (craftNick) craftNick.value = "";
-
     // 結果系をリセット
     craftResult.style.display = "none";
     craftResultText.textContent = "";
 
-    // X用画像機能は使わないので非表示固定
+    // 使わないので常に非表示
     if (craftImgBtn) craftImgBtn.style.display = "none";
     if (craftImgWrap) craftImgWrap.style.display = "none";
   }
@@ -122,9 +128,13 @@
     if (mTitle) mTitle.textContent = dest.isCraft ? "職人の祭壇" : "たこ焼きゲート";
 
     if (mDesc){
-      mDesc.textContent = dest.isCraft
-        ? "今だけ5分間のレア祭壇です。\n取得しますか？"
-        : "たこ焼きページへ移動しますか？";
+      if (dest.isCraft){
+        // ★ここ：モーダルを開いた瞬間の取得日時を表示
+        mDesc.textContent =
+          `今だけ5分間のレア祭壇です。\n取得しますか？\n\n取得日時：${jstStampHM()}`;
+      }else{
+        mDesc.textContent = "たこ焼きページへ移動しますか？";
+      }
     }
 
     if (btnGo) btnGo.href = dest.url || "#";
@@ -170,14 +180,12 @@
   }
 
   function showResult(text){
-    // 入力エリア（テキストボックス＋取得ボタン）を消す
+    // 取得後は入力ブロックごと消す（ボタンも消える）
     craftClaim.style.display = "none";
 
-    // 結果だけ表示
     craftResultText.textContent = text;
     craftResult.style.display = "block";
 
-    // X用画像は使わない
     if (craftImgBtn) craftImgBtn.style.display = "none";
     if (craftImgWrap) craftImgWrap.style.display = "none";
   }
@@ -230,5 +238,3 @@
     openModal(gate._dest || NORMAL_DEST);
   });
 })();
-
-
