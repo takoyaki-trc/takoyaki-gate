@@ -39,12 +39,15 @@
     const now = Date.now();
     const k = "craft_start_time";
     const startRaw = localStorage.getItem(k);
+
     if (!startRaw){
       localStorage.setItem(k, String(now));
       return true;
     }
+
     const start = Number(startRaw);
     if (Number.isFinite(start) && (now - start) < CRAFT_LIMIT_MS) return true;
+
     localStorage.removeItem(k);
     return false;
   }
@@ -66,7 +69,7 @@
   const btnCancel = byId("gateModalCancel");
 
   const craftClaim = byId("craftClaim");
-  const craftNick  = byId("craftNick");
+  const craftNick  = byId("craftNick"); // HTMLに残っててもOK（使わない）
   const craftGetBtn = byId("craftGetBtn");
 
   const craftResult = byId("craftResult");
@@ -74,28 +77,12 @@
 
   const craftImgBtn = byId("craftImgBtn");
   const craftImgWrap = byId("craftImgWrap");
-  const craftImgPreview = byId("craftImgPreview");
 
-  /* ★追加：ニックネーム固定表示（JSだけで生成） */
-  let craftNickFixed = null;
-
-  function ensureNickFixed(){
-    if (craftNickFixed) return;
-    craftNickFixed = document.createElement("div");
-    craftNickFixed.id = "craftNickFixed";
-    craftNickFixed.style.display = "none";
-    craftNickFixed.style.marginTop = "6px";
-    craftNickFixed.style.padding = "10px 12px";
-    craftNickFixed.style.border = "2px solid rgba(255,255,255,.85)";
-    craftNickFixed.style.borderRadius = "12px";
-    craftNickFixed.style.background = "rgba(0,0,0,.35)";
-    craftNickFixed.style.fontSize = "13px";
-    craftNickFixed.style.fontWeight = "700";
-    craftClaim.prepend(craftNickFixed);
-  }
+  // 必須チェック（最低限）
+  if (!modal || !craftClaim || !craftGetBtn || !craftResult || !craftResultText) return;
 
   /* ===============================
-     表示切替
+     表示切替（昼夜土台）
   =============================== */
   function applyBase(){
     if (!baseImg) return;
@@ -103,51 +90,45 @@
     if (url && baseImg.src !== url) baseImg.src = url;
   }
 
+  /* ===============================
+     表示切替（アイコン＝通常/職人）
+  =============================== */
   function applyIcon(){
     const dest = isCraftTime() ? CRAFT_DEST : NORMAL_DEST;
     gate._dest = dest;
-    if (iconImg && dest.icon && iconImg.src !== dest.icon) {
-      iconImg.src = dest.icon;
-    }
+    if (iconImg && dest.icon && iconImg.src !== dest.icon) iconImg.src = dest.icon;
   }
 
   /* ===============================
      モーダル制御
   =============================== */
   function resetCraftUI(dest){
-    if (!craftClaim) return;
-
     craftClaim.style.display = dest.isCraft ? "block" : "none";
-    craftNick.value = "";
-    craftNick.style.display = "block";
 
-    if (craftNickFixed){
-      craftNickFixed.style.display = "none";
-      craftNickFixed.textContent = "";
-    }
+    // 入力欄は使わないが、残っている場合は初期化だけ
+    if (craftNick) craftNick.value = "";
 
+    // 結果系をリセット
     craftResult.style.display = "none";
     craftResultText.textContent = "";
-    craftImgWrap.style.display = "none";
-    craftImgBtn.style.display = "none";
+
+    // X用画像機能は使わないので非表示固定
+    if (craftImgBtn) craftImgBtn.style.display = "none";
+    if (craftImgWrap) craftImgWrap.style.display = "none";
   }
 
   function openModal(dest){
-    if (!modal) {
-      window.open(dest.url, "_blank", "noopener");
-      return;
-    }
-
     if (mPhoto) mPhoto.src = dest.photo || "";
     if (mTitle) mTitle.textContent = dest.isCraft ? "職人の祭壇" : "たこ焼きゲート";
+
     if (mDesc){
       mDesc.textContent = dest.isCraft
         ? "今だけ5分間のレア祭壇です。\n取得しますか？"
         : "たこ焼きページへ移動しますか？";
     }
+
     if (btnGo) btnGo.href = dest.url || "#";
 
-    ensureNickFixed();
     resetCraftUI(dest);
 
     modal.classList.add("is-open");
@@ -155,18 +136,17 @@
   }
 
   function closeModal(){
-    if (!modal) return;
     modal.classList.remove("is-open");
     modal.setAttribute("aria-hidden", "true");
   }
 
   if (btnCancel) btnCancel.addEventListener("click", closeModal);
-  if (modal) modal.addEventListener("click", (e) => {
+  modal.addEventListener("click", (e) => {
     if (e.target === modal) closeModal();
   });
 
   /* ===============================
-     取得処理
+     取得処理（同端末・同日・同職人 1回）
   =============================== */
   function claimedKey(craftId){
     return `craft_claimed_${todayKeyJST()}_${craftId}`;
@@ -190,84 +170,50 @@
   }
 
   function showResult(text){
-  if (!hasCraftUI) return;
+    // 入力エリア（テキストボックス＋取得ボタン）を消す
+    craftClaim.style.display = "none";
 
-  // ▼ 入力エリア（テキストボックス＋取得ボタン）を消す
-  craftClaim.style.display = "none";
+    // 結果だけ表示
+    craftResultText.textContent = text;
+    craftResult.style.display = "block";
 
-  // ▼ 結果だけ表示
-  craftResultText.textContent = text;
-  craftResult.style.display = "block";
-
-  // ▼ スクショ画像取得ボタンは使わないので消す
-  craftImgBtn.style.display = "none";
-}
-
-  if (craftGetBtn){
-    craftGetBtn.addEventListener("click", () => {
-      const dest = gate._dest;
-      if (!dest || !dest.isCraft) return;
-
-      const already = getClaimedText(dest.craftId);
-      if (already){
-        showResult(already);
-        return;
-      }
-
-      const nick = craftNick.value.trim();
-      if (!nick) {
-        alert("ニックネームを入れてください");
-        return;
-      }
-
-      const serial = nextSerial(dest.craftId);
-      const time = new Date().toLocaleString("ja-JP");
-
-      const text =
-`【職人レア枠 取得】
-取得日時：${time}
-取得No：${serial}
-ニックネーム：${nick}
-
-#たこ焼きトレカ #たこ焼きゲート`;
-
-      setClaimedText(dest.craftId, text);
-      showResult(text);
-
-      /* ★ここがポイント：入力欄 → 固定表示に切替 */
-      craftNick.style.display = "none";
-      craftNickFixed.textContent = `ニックネーム：${nick}`;
-      craftNickFixed.style.display = "block";
-    });
+    // X用画像は使わない
+    if (craftImgBtn) craftImgBtn.style.display = "none";
+    if (craftImgWrap) craftImgWrap.style.display = "none";
   }
 
-  /* ===============================
-     X用画像生成
-  =============================== */
-  async function makeShareImage(){
-    const txt = craftResultText.textContent.trim();
-    if (!txt) return;
+  craftGetBtn.addEventListener("click", () => {
+    const dest = gate._dest;
+    if (!dest || !dest.isCraft) return;
 
-    if (typeof window.html2canvas !== "function"){
-      alert("html2canvas が読み込めていません。");
+    const already = getClaimedText(dest.craftId);
+    if (already){
+      showResult(already);
       return;
     }
 
-    const canvas = await html2canvas(craftResult, {
-      backgroundColor: "#000",
-      scale: 2,
-      useCORS: true
-    });
+    const serial = nextSerial(dest.craftId);
+    const time = new Date().toLocaleString("ja-JP");
 
-    craftImgPreview.src = canvas.toDataURL("image/png");
-    craftImgWrap.style.display = "block";
-  }
+    const text =
+`【職人レア枠 取得】
+取得日時：${time}
+取得No：${serial}
 
-  if (craftImgBtn){
-    craftImgBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      makeShareImage();
-    });
+#たこ焼きトレカ #たこ焼きゲート`;
+
+    setClaimedText(dest.craftId, text);
+    showResult(text);
+  });
+
+  /* ===============================
+     ★ テスト用リセット
+  =============================== */
+  if (RESET_TEST){
+    const craftId = CRAFT_DEST.craftId;
+    localStorage.removeItem(claimedKey(craftId));
+    localStorage.removeItem(serialKey(craftId));
+    localStorage.removeItem("craft_start_time");
   }
 
   /* ===============================
@@ -275,6 +221,7 @@
   =============================== */
   applyBase();
   applyIcon();
+
   new MutationObserver(applyBase).observe(document.documentElement, { attributes: true });
   setInterval(applyIcon, 1000);
 
@@ -282,6 +229,6 @@
     e.preventDefault();
     openModal(gate._dest || NORMAL_DEST);
   });
-
 })();
+
 
