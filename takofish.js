@@ -1,8 +1,6 @@
 (() => {
-  function openGame(){
-    alert("🎣 たこ焼き釣り 起動OK！");
-  }
-  window.openTakofishGame = openGame;
+  console.log("[takofish] loaded OK");
+  window.openTakofishGame = () => {
+    alert("JS OK! 🎣 takofish 起動");
+  };
 })();
-
-
