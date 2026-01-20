@@ -20,10 +20,7 @@
     photo: "https://ul.h3z.jp/i7T64HBV.png"
   };
 
-  // ★テスト中だけ true（本番は必ず false）
   const RESET_TEST = false;
-
-  // ★職人ステージ継続時間（ms）
   const CRAFT_LIMIT_MS = 5 * 60 * 1000;
 
   /* ===============================
@@ -31,35 +28,23 @@
   =============================== */
   const $ = (sel, root = document) => root.querySelector(sel);
   const byId = (id) => document.getElementById(id);
-
   const isNight = () => document.documentElement.classList.contains("is-night");
 
-  // ★JSTの「今日」キー（UTCズレ対策）
   function todayKeyJST(){
     const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   }
 
-  // ★職人ステージ：5分過ぎたら自動リセット（終わりっぱなし防止）
   function isCraftTime(){
     const now = Date.now();
     const k = "craft_start_time";
     const startRaw = localStorage.getItem(k);
-
     if (!startRaw){
       localStorage.setItem(k, String(now));
       return true;
     }
-
     const start = Number(startRaw);
-    if (Number.isFinite(start) && (now - start) < CRAFT_LIMIT_MS){
-      return true;
-    }
-
-    // 期限切れ → リセットして通常に戻す
+    if (Number.isFinite(start) && (now - start) < CRAFT_LIMIT_MS) return true;
     localStorage.removeItem(k);
     return false;
   }
@@ -91,30 +76,26 @@
   const craftImgWrap = byId("craftImgWrap");
   const craftImgPreview = byId("craftImgPreview");
 
-  /* ===============================
-     （保険）必須要素が欠けてたら分かるようにする
-  =============================== */
-  function assertEl(el, name){
-    if (!el) {
-      console.warn(`[gate.js] Missing element: ${name}`);
-      return false;
-    }
-    return true;
+  /* ★追加：ニックネーム固定表示（JSだけで生成） */
+  let craftNickFixed = null;
+
+  function ensureNickFixed(){
+    if (craftNickFixed) return;
+    craftNickFixed = document.createElement("div");
+    craftNickFixed.id = "craftNickFixed";
+    craftNickFixed.style.display = "none";
+    craftNickFixed.style.marginTop = "6px";
+    craftNickFixed.style.padding = "10px 12px";
+    craftNickFixed.style.border = "2px solid rgba(255,255,255,.85)";
+    craftNickFixed.style.borderRadius = "12px";
+    craftNickFixed.style.background = "rgba(0,0,0,.35)";
+    craftNickFixed.style.fontSize = "13px";
+    craftNickFixed.style.fontWeight = "700";
+    craftClaim.prepend(craftNickFixed);
   }
 
-  // craft系は「職人タイム」だけ使うが、無いとボタン反応しない原因になる
-  const hasCraftUI =
-    assertEl(craftClaim, "craftClaim") &&
-    assertEl(craftNick, "craftNick") &&
-    assertEl(craftGetBtn, "craftGetBtn") &&
-    assertEl(craftResult, "craftResult") &&
-    assertEl(craftResultText, "craftResultText") &&
-    assertEl(craftImgBtn, "craftImgBtn") &&
-    assertEl(craftImgWrap, "craftImgWrap") &&
-    assertEl(craftImgPreview, "craftImgPreview");
-
   /* ===============================
-     表示切替（昼夜土台）
+     表示切替
   =============================== */
   function applyBase(){
     if (!baseImg) return;
@@ -122,9 +103,6 @@
     if (url && baseImg.src !== url) baseImg.src = url;
   }
 
-  /* ===============================
-     表示切替（アイコン＝通常/職人）
-  =============================== */
   function applyIcon(){
     const dest = isCraftTime() ? CRAFT_DEST : NORMAL_DEST;
     gate._dest = dest;
@@ -137,22 +115,24 @@
      モーダル制御
   =============================== */
   function resetCraftUI(dest){
-    if (!hasCraftUI) return;
+    if (!craftClaim) return;
 
-    // 職人タイムのみ表示
     craftClaim.style.display = dest.isCraft ? "block" : "none";
-
-    // 入力＆結果＆画像をリセット
     craftNick.value = "";
+    craftNick.style.display = "block";
+
+    if (craftNickFixed){
+      craftNickFixed.style.display = "none";
+      craftNickFixed.textContent = "";
+    }
+
     craftResult.style.display = "none";
     craftResultText.textContent = "";
     craftImgWrap.style.display = "none";
-    // ★「取得後にだけ」表示
     craftImgBtn.style.display = "none";
   }
 
   function openModal(dest){
-    // モーダルが無い環境（念のため）
     if (!modal) {
       window.open(dest.url, "_blank", "noopener");
       return;
@@ -160,15 +140,14 @@
 
     if (mPhoto) mPhoto.src = dest.photo || "";
     if (mTitle) mTitle.textContent = dest.isCraft ? "職人の祭壇" : "たこ焼きゲート";
-
     if (mDesc){
       mDesc.textContent = dest.isCraft
         ? "今だけ5分間のレア祭壇です。\n取得しますか？"
         : "たこ焼きページへ移動しますか？";
     }
-
     if (btnGo) btnGo.href = dest.url || "#";
 
+    ensureNickFixed();
     resetCraftUI(dest);
 
     modal.classList.add("is-open");
@@ -187,7 +166,7 @@
   });
 
   /* ===============================
-     取得処理（同端末・同日・同職人 1回）
+     取得処理
   =============================== */
   function claimedKey(craftId){
     return `craft_claimed_${todayKeyJST()}_${craftId}`;
@@ -211,21 +190,18 @@
   }
 
   function showResult(text){
-    if (!hasCraftUI) return;
     craftResultText.textContent = text;
     craftResult.style.display = "block";
-    // ★取得後にだけ表示
     craftImgBtn.style.display = "block";
   }
 
-  if (hasCraftUI && craftGetBtn){
+  if (craftGetBtn){
     craftGetBtn.addEventListener("click", () => {
       const dest = gate._dest;
       if (!dest || !dest.isCraft) return;
 
       const already = getClaimedText(dest.craftId);
       if (already){
-        alert("本日は取得済みです（同じ端末では1日1回）");
         showResult(already);
         return;
       }
@@ -249,52 +225,37 @@
 
       setClaimedText(dest.craftId, text);
       showResult(text);
+
+      /* ★ここがポイント：入力欄 → 固定表示に切替 */
+      craftNick.style.display = "none";
+      craftNickFixed.textContent = `ニックネーム：${nick}`;
+      craftNickFixed.style.display = "block";
     });
   }
 
   /* ===============================
-     X用画像生成（スクショ代わり）
+     X用画像生成
   =============================== */
   async function makeShareImage(){
-    if (!hasCraftUI) return;
-
     const txt = craftResultText.textContent.trim();
-    if (!txt){
-      alert("先に『取得する（レア枠）』を押してね。");
-      return;
-    }
+    if (!txt) return;
 
     if (typeof window.html2canvas !== "function"){
-      alert("html2canvas が読み込めていません。scriptタグを確認してね。");
+      alert("html2canvas が読み込めていません。");
       return;
     }
-
-    craftResult.style.display = "block";
-
-    // 見栄え（背景）
-    const prevBg = craftResult.style.backgroundColor;
-    const prevPad = craftResult.style.padding;
-    craftResult.style.backgroundColor = prevBg || "#000";
-    craftResult.style.padding = prevPad || "12px";
 
     const canvas = await html2canvas(craftResult, {
       backgroundColor: "#000",
       scale: 2,
-      useCORS: true,
-      allowTaint: true
+      useCORS: true
     });
 
-    craftResult.style.backgroundColor = prevBg;
-    craftResult.style.padding = prevPad;
-
-    const dataUrl = canvas.toDataURL("image/png");
-    craftImgPreview.src = dataUrl;
+    craftImgPreview.src = canvas.toDataURL("image/png");
     craftImgWrap.style.display = "block";
-
-    alert("画像を作ったよ！画像を長押し/右クリックで保存して、Xに貼ってね。");
   }
 
-  if (hasCraftUI && craftImgBtn){
+  if (craftImgBtn){
     craftImgBtn.addEventListener("click", (e) => {
       e.preventDefault();
       makeShareImage();
@@ -302,31 +263,17 @@
   }
 
   /* ===============================
-     ★ テスト用：取得済みを自動リセット（本番は必ずfalse）
-  =============================== */
-  if (RESET_TEST){
-    const craftId = CRAFT_DEST.craftId;
-    localStorage.removeItem(claimedKey(craftId));
-    localStorage.removeItem(serialKey(craftId));
-    localStorage.removeItem("craft_start_time");
-    console.log("[gate.js] RESET_TEST: cleared claimed/serial/craft_start_time");
-  }
-
-  /* ===============================
      初期化
   =============================== */
   applyBase();
   applyIcon();
-
-  // 昼夜切替追従
   new MutationObserver(applyBase).observe(document.documentElement, { attributes: true });
-
-  // アイコン切替（職人タイム判定）
   setInterval(applyIcon, 1000);
 
-  // ゲートクリックでモーダル
   gate.addEventListener("click", (e) => {
     e.preventDefault();
     openModal(gate._dest || NORMAL_DEST);
   });
+
 })();
+
