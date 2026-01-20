@@ -15,7 +15,7 @@
 */
 .map-wrap .takomin{
   position: absolute;   /* すでにabsoluteでもOK */
-  z-index: 60;          /* spot(40)より前 / modal(10000)より後 */
+  z-index: 90;          /* spot(40)より前 / modal(10000)より後 */
   pointer-events: auto; /* タップ可能に */
 }
 
@@ -70,7 +70,7 @@
   display: none;
   place-items: center;
   background: rgba(0,0,0,.65);
-  z-index: 40; /* ここは最前面維持 */
+  z-index: 10000; /* ここは最前面維持 */
 }
 
 .gate-modal.is-open{
