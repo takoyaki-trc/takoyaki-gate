@@ -30,29 +30,7 @@
     { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/6961473c6efc8/19.png", link:"", lines:["表通りだけが村じゃない。","静かな場所ほど熱い。","……気づいたか？","足音を消せ。","光を背にするな。","ここは通好みだ。","表に出るな。","覚えておけ。"] },
     { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/6961474dded89/20.png", link:"", lines:["今日は何か起きそうだ！","袋、開ける瞬間が一番だろ？","外れ？それも祭りだ！","音が違うぞ！","この空気、好きだ！","当たる気がする！","叫びたいな！","さぁ行こう！"] },
 
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/69614760bbd56/21.png", link:"", lines:["まだ起きてるのか？","この時間にしか出ないカードもある。","朝はすぐ来る。","夜は短い。","静かに回せ。","眠気と勝負だ。","今が一番だ。","……もう少し。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/6961477448c5f/22.png", link:"", lines:["人は必ず同じ場所で立ち止まる。","そこに意味がある。","君も…そうだ。","偶然は重なる。","選んだのは君だ。","理由は後からつく。","立ち止まる勇気も必要だ。","今はそれでいい。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/696147868c512/23.png", link:"", lines:["……。","（じっと焼き台を見ている）","……いい焼き色だ。","音が揃ってきた。","今だ。","……まだ。","よし。","……完璧だ。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/69614798925c4/24.png", link:"", lines:["この村は焼かれ続けている。","伝説は誰かの手に渡る。","次は……君だ。","始まりはいつも静かだ。","名もなき一舟からだ。","覚悟は後でいい。","まずは触れてみろ。","物語はそこからだ。"] },
-
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/696147ab126d4/25.png", link:"", lines:["プリントの匂い、好きか？","インクは嘘をつかない。","角が立つほど美しい。","擦るな、愛でろ。","湿気は敵だ。","保護は信頼だ。","今日の刷りは上出来だ。","……触るなら手を洗え。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/696144887b046/26.png", link:"", lines:["ねぇねぇ、知ってるたこ？","焼かれたら、伝説たこ。","その一枚、呼ばれてるたこ。","失敗もレアたこ。","迷う時間も、価値たこ。","キラキラじゃなくても、好きたこ。","集めてる？集められてるたこ。","偶然じゃないたこ。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/69614fd926afa/27.png", link:"", lines:["ビンゴ帳？ここで買える。","縦横斜め、狙いは自由だ。","ダブり3枚は鍵だ。","押印は儀式だ。","焦るほど外れる。","運も実力だ。","FREEは…救いだ。","さぁ、回収だ。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/69614feb76221/28.png", link:"", lines:["限定って言葉に弱いだろ。","初回ロットは金色だ。","次は銀…戻れない。","今だけは今しかない。","迷うほど在庫は減る。","買うなら今だ。","寝かせるなら覚悟しろ。","……伝説を抱け。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/6961528d0995b/29.png", link:"", lines:["旅の証は集めたかにゃ？","かつお節、大盛りにしてにゃ！","寄り道が本編にゃ。","地図は君の頭に刻むにゃ。","ホテルの棚も見逃すんにゃない。","にゃ。","温泉街は回復ポイントだにゃ。","次の目的地はどこにゃ？"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/6961501077a16/30.png", link:"", lines:["レアは引くんじゃない、呼ぶんだ。","深呼吸しろ。","手汗を拭け。","袋を信じろ。","一枚目で決まる日もある。","期待しすぎるな。","でも願え。","……来るぞ。"] },
-
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/6961501fe7975/31.png", link:"", lines:["君、コレクション派？対戦派？","どっちも正しい。","でも沼は深い。","ルールは後から生える。","まずは集めろ。","次に遊べ。","最後に語れ。","それが村の流儀だ。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/69615033571a7/32.png", link:"", lines:["焼き台は神殿だ。","丸穴は運命の型だ。","火力は感情に似てる。","強すぎると壊れる。","弱すぎると進まない。","ちょうどいいが一番難しい。","だから面白い。","……回せ。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/69615041bd3c9/33.png", link:"", lines:["この村では“焼き”がニュースだ。","今日の焼かれし者は誰だ？","匂いでわかる。","音でもわかる。","顔にも出る。","隠せない。","焼かれた者は強い。","次は君かもな。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/696150543b68f/34.png", link:"", lines:["カードは資産か？思い出か？","答えは両方だ。","価値は人が決める。","人は物語に払う。","物語は積み重なる。","積み重なるほど強い。","だから続く。","……君も買うだろ。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/6961506513140/35.png", link:"", lines:["シールは油断すると消える。","貼る場所は選べ。","剥がす勇気も必要だ。","貼った瞬間、物語が始まる。","貼らなくてもコレクションだ。","だが貼ると愛が増える。","選べ。","……君の手で。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/696150750ebd7/36.png", link:"", lines:["外は寒い、でも中は熱い。","温泉の湯気が恋しい。","湯気はバフだ。","風はデバフだ。","今日は耐えろ。","明日は回復だ。","たこ焼きはHPだ。","食え。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/6961508b20671/37.png", link:"", lines:["写真を撮るなら角度だ。","斜め45度は王道だ。","影を味方にしろ。","光は敵にもなる。","背景は語る。","手元は真実だ。","一枚で物語にしろ。","投稿は儀式だ。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/6961509a14ea2/38.png", link:"", lines:["レビューは武器にもなる。","褒め言葉も刺さる。","悪口は燃料だ。","燃えるほど強くなる。","返す言葉は熱々で。","でも火傷には注意。","戦うなら笑え。","……焼き返せ。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/696150a972e54/39.png", link:"", lines:["英語の呪文も覚えたか？","海外には海外の沼がある。","Pixelは世界共通語だ。","Weirdは正義だ。","Legendは釣れる。","でも最後は味だ。","味は翻訳できない。","だから来る。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/696150c0d4f0d/40.png", link:"", lines:["君、今日ここに来た理由は？","たまたま？それは嘘だ。","引き寄せられたんだ。","カードに。","匂いに。","物語に。","全部だ。","……認めろ。"] },
-
+  
     { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/696150d10e41a/41.png", link:"", lines:["この村の夜は静かだ。","静かすぎて怖いか？","怖いなら正しい。","正しいなら進め。","進めば景色が変わる。","変われば君も変わる。","変わった君が伝説だ。","……寝るな。"] },
     { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/696150df7fcb0/42.png", link:"", lines:["封を切る時、音を聞け。","その音が運だ。","軽い音の日もある。","重い音の日もある。","重い日は当たりやすい。","…とか言ってみる。","信じた？","それが村だ。"] },
     { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/696150ed459d8/43.png", link:"", lines:["保存は“未来への焼き”だ。","湿気から守れ。","光からも守れ。","でも触れ。","触れないと愛が死ぬ。","愛は価値になる。","価値は物語になる。","……難しいだろ。"] },
