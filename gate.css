@@ -1,52 +1,61 @@
-/* ===== ゲート（建物） ===== */
+/* ===== たこ焼きゲート CSS（完全版） ===== */
+
+.map-wrap{
+  position: relative;
+}
+
+/* 背景・マップ画像はタップ無効 */
+.map-wrap img{
+  pointer-events: none;
+}
+
+/* ゲート本体 */
 .map-wrap .spot{
   position: absolute;
-  display: block;
+  top: 68%;
+  left: 52%;
   transform: translate(-50%, -100%);
   width: clamp(124px, 12vw, 250px);
-  z-index: 40;
+  z-index: 9999;
   background: transparent;
   border: 0;
   padding: 0;
   cursor: pointer;
+  pointer-events: auto;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 
-.map-wrap .spot__base,
-.map-wrap .spot__icon{
+.map-wrap .spot__base{
   width: 100%;
   height: auto;
   display: block;
   image-rendering: pixelated;
 }
 
-/* ここを「親の基準」にしたいので、spot自体を基準化 */
-.map-wrap .spot{ position:absolute; }
-.map-wrap .spot--gate{ top: 68%; left: 52%; }
-
-/* アイコンを土台の上に重ねる */
 .map-wrap .spot__icon{
   position: absolute;
   left: 50%;
   top: 45%;
   transform: translate(-50%, -50%);
   width: 55%;
-  pointer-events: none;
+  image-rendering: pixelated;
   filter: drop-shadow(0 2px 0 rgba(0,0,0,.6));
 }
 
-/* ===== ワンクッション（モーダル） ===== */
+/* ===== モーダル ===== */
 .gate-modal{
   position: fixed;
   inset: 0;
   display: none;
   place-items: center;
   background: rgba(0,0,0,.65);
-  z-index: 9999;
-  padding: 16px;
+  z-index: 10000;
 }
-.gate-modal.is-open{ display: grid; }
+
+.gate-modal.is-open{
+  display: grid;
+}
 
 .gate-modal__panel{
   width: min(520px, 92vw);
@@ -54,7 +63,6 @@
   color: #fff;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,.45);
 }
 
 .gate-modal__photo{
@@ -75,7 +83,6 @@
 .gate-modal__desc{
   white-space: pre-line;
   line-height: 1.45;
-  opacity: .95;
 }
 
 .gate-modal__btns{
@@ -86,18 +93,19 @@
 
 .gate-modal__btn{
   flex: 1;
-  text-align: center;
   padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid rgba(255,255,255,.2);
   background: transparent;
   color: #fff;
-  text-decoration: none;
   cursor: pointer;
+  text-align: center;
+  text-decoration: none;
 }
 
 .gate-modal__btn--go{
   background: #fff;
   color: #000;
-  border-color: transparent;
+  border: 0;
 }
+
