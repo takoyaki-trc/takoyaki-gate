@@ -172,3 +172,5 @@
   display: none !important;
 }
 
+.map-wrap .spot--gate .spot__icon{ pointer-events: none !important; }
+
