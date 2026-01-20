@@ -16,8 +16,8 @@
     craftId: "craft_now_001",
     name: "🔥 職人の祭壇 🔥",
     url: "https://takoyakinana.1net.jp/",
-    icon: "https://ul.h3z.jp/lr15cpLx.png",
-    photo: "https://ul.h3z.jp/38MCcDmY.png"
+    icon: "https://ul.h3z.jp/EOAYW0Ro.png",
+    photo: "https://ul.h3z.jp/t5dXbm8M.png"
   };
 
   // ★テスト中だけ true（本番は必ず false）
