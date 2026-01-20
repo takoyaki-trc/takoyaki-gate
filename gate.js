@@ -3,7 +3,7 @@
      設定（必要ならここだけ変更）
   ========================= */
   const HOME_URL = "https://takoyakitrc.base.shop/"; // 「ホームページを表示する」遷移先
-  const SCREENSHOT_IMAGE_URL = "https://ul.h3z.jp/REPLACE_ME.png"; // スクショ表示する画像（あなたの完成画像URLに差し替え）
+  const SCREENSHOT_IMAGE_URL = "https://ul.h3z.jp/t5dXbm8M.png"; // スクショ表示する画像（あなたの完成画像URLに差し替え）
   const LIMIT_ONCE_PER_DAY = false; // 1日1回制限したいなら true
 
   /* =========================
