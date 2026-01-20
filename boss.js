@@ -1,6 +1,5 @@
-
 /* =========================
-   boss.js
+   boss.js（最終・安全版）
    ボス：画像タップ → 会話 → バトル（1日1回）
    仕様：
    - カードは端末ごとにランダム
@@ -8,12 +7,16 @@
    - 初回バトルで「カード/結果/点数」を保存
    - 2回目以降は保存内容を表示（同じカード/同じ結果）
    夜判定：html.is-night に統一
+   追加：
+   - ゲートモーダルが開いてたら閉じる
+   - talk/overlay を body 最後尾へ移動して最前面固定
+   - z-index を JS でも強制（CSSが負けても勝つ）
 ========================= */
 (() => {
 
   /* ---------- 夜ガード（統一） ---------- */
   function isNightNow(){
-    return document.documentElement.classList.contains('is-night');
+    return document.documentElement.classList.contains("is-night");
   }
 
   /* ---------- 東京時間（端末ズレ対策） ---------- */
@@ -24,8 +27,8 @@
   function todayKey(){
     const d = nowTokyo();
     const y = d.getFullYear();
-    const m = String(d.getMonth()+1).padStart(2,"0");
-    const day = String(d.getDate()).padStart(2,"0");
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
     return `${y}${m}${day}`;
   }
 
@@ -89,6 +92,7 @@
     { id:"TN-047", name:"《TN-047:ボスゲート》", url:"https://ul.h3z.jp/vcqsYTKN.jpg" },
     { id:"TN-048", name:"《TN-048:店主反撃レビュー《佐俣雄一郎🎯》》", url:"https://ul.h3z.jp/itQ85zyP.jpg" },
 
+    /* URLが不正でも動作は止めない（画像が出ないだけ） */
     { id:"TN-049", name:"《TN-049:たこ焼きの御神体》", url:"https://ul.h3z.jp/KJQrt??.jpg" },
 
     { id:"BN-050", name:"《BN-050:焼かれし記憶、ソースに還る》", url:"https://ul.h3z.jp/nMEEgSCs.jpg" }
@@ -105,11 +109,20 @@
     "夜が動いたたこ。ボスが出る合図。"
   ];
 
-  const commentsWin  = ["やったね…勝っちゃったたこ。夜がちょっとだけ静かになった。","勝利ログ、刻んだたこ。…街が覚えちゃうやつ。"];
-  const commentsLose = ["負けちゃったたこ。…でもね、夜は“負け”を栄養にするんだ。","敗北ログ、保存されたたこ。消せないやつ…ふふ。"];
-  const commentsDraw = ["引き分けたこ。夜がね、まだ決めたくないってさ。","決着つかなかったたこ。余熱だけが残ってる。"];
+  const commentsWin  = [
+    "やったね…勝っちゃったたこ。夜がちょっとだけ静かになった。",
+    "勝利ログ、刻んだたこ。…街が覚えちゃうやつ。"
+  ];
+  const commentsLose = [
+    "負けちゃったたこ。…でもね、夜は“負け”を栄養にするんだ。",
+    "敗北ログ、保存されたたこ。消せないやつ…ふふ。"
+  ];
+  const commentsDraw = [
+    "引き分けたこ。夜がね、まだ決めたくないってさ。",
+    "決着つかなかったたこ。余熱だけが残ってる。"
+  ];
 
-  function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+  function pick(a){ return a[Math.floor(Math.random() * a.length)]; }
 
   function getOrPickTodayCardId(){
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -140,11 +153,13 @@
     if(r < 0.90) return "LOSE";
     return "DRAW";
   }
+
   function scoreFor(out){
-    if(out === "WIN")  return 60 + Math.floor(Math.random()*31);
-    if(out === "LOSE") return 10 + Math.floor(Math.random()*36);
-    return 40 + Math.floor(Math.random()*20);
+    if(out === "WIN")  return 60 + Math.floor(Math.random() * 31);
+    if(out === "LOSE") return 10 + Math.floor(Math.random() * 36);
+    return 40 + Math.floor(Math.random() * 20);
   }
+
   function isRainbow(){ return Math.random() < 0.03; }
 
   function formatDate(){
@@ -171,7 +186,7 @@
         `釣り大会？\nふふ…獲物は変わったな。\n今夜はお前が“釣られる”。`
       ]
     };
-    if (OVERRIDE_TALK[id]) return OVERRIDE_TALK[id];
+    if(OVERRIDE_TALK[id]) return OVERRIDE_TALK[id];
 
     const RULES = [
       { test:/ボスゲート|ゲート|扉/, lines:[
@@ -250,11 +265,11 @@
     ];
   }
 
-  /* ====== 戦う前の会話オーバーレイ生成 ====== */
-  let talk = document.querySelector('.boss-talk');
+  /* ====== 会話オーバーレイ生成 ====== */
+  let talk = document.querySelector(".boss-talk");
   if(!talk){
-    talk = document.createElement('div');
-    talk.className = 'boss-talk';
+    talk = document.createElement("div");
+    talk.className = "boss-talk";
     talk.innerHTML = `
       <div class="boss-talk-panel" role="dialog" aria-modal="true" aria-label="ボスのひとこと">
         <div class="boss-talk-title" id="bossTalkTitle"></div>
@@ -266,20 +281,16 @@
       </div>
     `;
     document.body.appendChild(talk);
-    talk.addEventListener('click', (e)=>{
-      if(e.target === talk) talk.style.display = 'none';
+    talk.addEventListener("click", (e)=>{
+      if(e.target === talk) closeTalk();
     });
   }
-  const elTalkTitle = talk.querySelector('#bossTalkTitle');
-  const elTalkText  = talk.querySelector('#bossTalkText');
-  const btnFight    = talk.querySelector('#bossFight');
-  const btnBack     = talk.querySelector('#bossBack');
 
-  /* ====== バトル結果オーバーレイ生成 ====== */
-  let overlay = document.querySelector('.boss-overlay');
+  /* ====== 結果オーバーレイ生成 ====== */
+  let overlay = document.querySelector(".boss-overlay");
   if(!overlay){
-    overlay = document.createElement('div');
-    overlay.className = 'boss-overlay';
+    overlay = document.createElement("div");
+    overlay.className = "boss-overlay";
     overlay.innerHTML = `
       <div class="boss-panel" role="dialog" aria-modal="true" aria-label="ボスバトル結果">
         <div class="boss-head">夜の一戦 / 今日の１枚</div>
@@ -297,24 +308,70 @@
       </div>
     `;
     document.body.appendChild(overlay);
-    overlay.addEventListener('click', (e)=>{
-      if(e.target === overlay) overlay.style.display = 'none';
-    });
-    document.addEventListener('keydown', (e)=>{
-      if(e.key === 'Escape'){
-        if(talk.style.display === 'block') talk.style.display = 'none';
-        if(overlay.style.display === 'block') overlay.style.display = 'none';
-      }
+    overlay.addEventListener("click", (e)=>{
+      if(e.target === overlay) closeOverlay();
     });
   }
 
-  const panel      = overlay.querySelector('.boss-panel');
-  const elImg      = overlay.querySelector('#bossCardImg');
-  const elResult   = overlay.querySelector('#bossResult');
-  const elScore    = overlay.querySelector('#bossScore');
-  const elComment  = overlay.querySelector('#bossComment');
-  const elFooter   = overlay.querySelector('#bossFooter');
-  const btnClose   = overlay.querySelector('#bossClose');
+  /* ====== 最前面固定（スタッキング対策：最重要） ====== */
+  function forceFront(){
+    // DOMの最後尾に移動（最前面になりやすい）
+    document.body.appendChild(talk);
+    document.body.appendChild(overlay);
+
+    // CSSが負ける環境でも勝つように style 直指定
+    talk.style.zIndex = "30000";
+    talk.style.position = "fixed";
+    talk.style.inset = "0";
+
+    overlay.style.zIndex = "30001";
+    overlay.style.position = "fixed";
+    overlay.style.inset = "0";
+  }
+  forceFront();
+
+  // ESCで閉じる
+  document.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape"){
+      closeTalk();
+      closeOverlay();
+    }
+  });
+
+  const elTalkTitle = talk.querySelector("#bossTalkTitle");
+  const elTalkText  = talk.querySelector("#bossTalkText");
+  const btnFight    = talk.querySelector("#bossFight");
+  const btnBack     = talk.querySelector("#bossBack");
+
+  const panel      = overlay.querySelector(".boss-panel");
+  const elBossName = overlay.querySelector("#bossName");
+  const elImg      = overlay.querySelector("#bossCardImg");
+  const elResult   = overlay.querySelector("#bossResult");
+  const elScore    = overlay.querySelector("#bossScore");
+  const elComment  = overlay.querySelector("#bossComment");
+  const elFooter   = overlay.querySelector("#bossFooter");
+  const btnClose   = overlay.querySelector("#bossClose");
+
+  function openTalkUI(){
+    forceFront();
+    talk.classList.add("is-open");
+    talk.style.display = "block";
+  }
+  function closeTalk(){
+    talk.classList.remove("is-open");
+    talk.style.display = "none";
+  }
+  function openOverlayUI(){
+    forceFront();
+    overlay.classList.add("is-open");
+    overlay.style.display = "block";
+  }
+  function closeOverlay(){
+    overlay.classList.remove("is-open");
+    overlay.style.display = "none";
+  }
+
+  btnClose.addEventListener("click", closeOverlay);
 
   function render(data){
     const card = findCardById(data.cardId);
@@ -322,9 +379,9 @@
     elImg.src = card.url;
     elImg.alt = card.name;
 
-    panel.classList.toggle('rainbow', !!data.rainbow);
+    panel.classList.toggle("rainbow", !!data.rainbow);
 
-    overlay.querySelector('#bossName').textContent = `BOSS：${BOSS_NAME}`;
+    elBossName.textContent = `BOSS：${BOSS_NAME}`;
     elResult.textContent   = data.resultText;
     elScore.textContent    = `焼かれし点数：${data.score}`;
     elComment.textContent  = data.comment;
@@ -332,8 +389,8 @@
   }
 
   function runBattleOnce(){
-    overlay.style.display = 'block';
-    panel.classList.remove('rainbow');
+    openOverlayUI();
+    panel.classList.remove("rainbow");
 
     const saved = localStorage.getItem(STORAGE_KEY);
     if(saved){
@@ -360,16 +417,26 @@
     render(data);
   }
 
+  function closeGateModalIfOpen(){
+    // ゲートモーダルが開いてたら閉じる（重なり事故防止）
+    const gm = document.getElementById("gateModal");
+    if(gm) gm.classList.remove("is-open");
+  }
+
   function openTalk(){
     if(!isNightNow()) return;
+
+    closeGateModalIfOpen();
+    forceFront();
 
     const cardId = getOrPickTodayCardId();
     const card = findCardById(cardId);
 
     elTalkTitle.textContent = "たこぴ";
     elTalkText.textContent  = pick(TAKOPI_PRELUDE);
-    talk.style.display = 'block';
+    openTalkUI();
 
+    // たこぴ → ボス（1.2秒後）
     setTimeout(() => {
       if (talk.style.display !== "block") return;
       elTalkTitle.textContent = `BOSS：${BOSS_NAME}`;
@@ -377,17 +444,19 @@
     }, 1200);
 
     btnFight.onclick = ()=>{
-      talk.style.display = 'none';
+      closeTalk();
       runBattleOnce();
     };
-    btnBack.onclick = ()=>{ talk.style.display = 'none'; };
+    btnBack.onclick = closeTalk;
   }
 
+  /* ✅ クリックの安定化：直接bind + 委譲 */
   function bindBossGate(){
-    const bossGate = document.querySelector('.boss-gate');
+    const bossGate = document.querySelector(".boss-gate");
+
     if(bossGate && !bossGate.dataset.bound){
       bossGate.dataset.bound = "1";
-      bossGate.addEventListener('click', (e)=>{
+      bossGate.addEventListener("click", (e)=>{
         e.preventDefault();
         openTalk();
       });
@@ -395,16 +464,14 @@
 
     if(!document.body.dataset.bossDelegated){
       document.body.dataset.bossDelegated = "1";
-      document.body.addEventListener('click', (e)=>{
-        const a = e.target.closest && e.target.closest('.boss-gate');
+      document.body.addEventListener("click", (e)=>{
+        const a = e.target.closest && e.target.closest(".boss-gate");
         if(!a) return;
         e.preventDefault();
         openTalk();
       });
     }
   }
-
-  btnClose.addEventListener('click', ()=>{ overlay.style.display = 'none'; });
 
   bindBossGate();
   setTimeout(bindBossGate, 500);
