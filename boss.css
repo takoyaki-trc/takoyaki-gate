@@ -18,7 +18,7 @@ html.is-night .boss-gate{
   position: fixed;
   inset: 0;
   display: none;
-  z-index: 9998;
+  z-index: 10001;
   background: rgba(0,0,0,0.78);
 }
 .boss-talk-panel{
