@@ -14,6 +14,31 @@
 ========================= */
 (() => {
 
+
+  // ===== 読み込み確認（これが出なければboss.jsが読めてない） =====
+  (function(){
+    const id = "bossDebugBadge";
+    if (document.getElementById(id)) return;
+    const b = document.createElement("div");
+    b.id = id;
+    b.textContent = "boss.js LOADED ✅";
+    b.style.position = "fixed";
+    b.style.left = "10px";
+    b.style.bottom = "10px";
+    b.style.zIndex = "999999";
+    b.style.background = "#000";
+    b.style.color = "#fff";
+    b.style.border = "2px solid #fff";
+    b.style.padding = "6px 8px";
+    b.style.fontSize = "12px";
+    document.body.appendChild(b);
+  })();
+
+
+
+
+   
+
   /* ---------- 夜ガード（統一） ---------- */
   function isNightNow(){
     return document.documentElement.classList.contains("is-night");
