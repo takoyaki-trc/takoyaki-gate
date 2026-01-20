@@ -2,9 +2,10 @@
   /* =========================
      設定（必要ならここだけ変更）
   ========================= */
-  const HOME_URL = "https://takoyakitrc.base.shop/"; // 「ホームページを表示する」遷移先
-  const SCREENSHOT_IMAGE_URL = "https://ul.h3z.jp/t5dXbm8M.png"; // スクショ表示する画像（あなたの完成画像URLに差し替え）
-  const LIMIT_ONCE_PER_DAY = false; // 1日1回制限したいなら true
+  const HOME_URL = "https://takoyakitrc.base.shop/";
+  const SCREENSHOT_IMAGE_URL = "https://ul.h3z.jp/t5dXbm8M.png";
+  const LIMIT_ONCE_PER_DAY = false; // trueで1日1回
+  const KEEP_NICK_ON_BACK = true;   // 戻るでニックネーム残す
 
   /* =========================
      要素
@@ -28,7 +29,6 @@
   const craftHomeBtn = document.getElementById("craftHomeBtn");
   const craftBackBtn = document.getElementById("craftBackBtn");
 
-  // このページに祭壇が無いなら何もしない
   if (!gateBtn || !modal || !craftClaim || !craftGetBtn) return;
 
   /* =========================
@@ -36,6 +36,7 @@
   ========================= */
   const LS_KEY = "takoyaki_ss_taken";
   const pad = (n) => String(n).padStart(2, "0");
+
   function jstNow() {
     const now = new Date();
     const utc = now.getTime() + now.getTimezoneOffset() * 60000;
@@ -53,8 +54,7 @@
   }
 
   /* =========================
-     昼夜切替（spot__base の data-day / data-night を使う）
-     ※既に別JSで夜切替してるなら、ここはあっても害は少ない
+     昼夜切替（data-day / data-night）
   ========================= */
   function isNight() {
     return document.documentElement.classList.contains("is-night");
@@ -67,26 +67,29 @@
     baseImg.src = isNight() ? (night || day) : (day || night);
   }
   applyDayNight();
-  // たまに切り替わる実装でも追従できるよう軽く監視
   const mo = new MutationObserver(applyDayNight);
   mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 
   /* =========================
-     モーダル開閉
+     表示ユーティリティ
   ========================= */
+  function resetResultUI() {
+    if (craftResult) craftResult.style.display = "none";
+    if (craftImgWrap) craftImgWrap.style.display = "none";
+    if (craftAfterBtns) craftAfterBtns.style.display = "none";
+    if (craftImgPreview) {
+      craftImgPreview.removeAttribute("src");
+      craftImgPreview.alt = "スクショ用画像";
+    }
+  }
+
   function openModal() {
     modal.setAttribute("aria-hidden", "false");
     modal.style.display = "block";
 
-    // ★ここが大事：取得UIを表示する
     craftClaim.style.display = "block";
+    resetResultUI();
 
-    // 結果は閉じておく
-    if (craftResult) craftResult.style.display = "none";
-    if (craftImgWrap) craftImgWrap.style.display = "none";
-    if (craftAfterBtns) craftAfterBtns.style.display = "none";
-
-    // 入力フォーカス
     if (craftNick) craftNick.focus();
   }
 
@@ -95,91 +98,69 @@
     modal.style.display = "none";
   }
 
-  /* =========================
-     「戻る」＝取得後表示を閉じて、入力画面へ戻す
-  ========================= */
   function backToInput() {
-    if (craftResult) craftResult.style.display = "none";
-    if (craftImgWrap) craftImgWrap.style.display = "none";
-    if (craftAfterBtns) craftAfterBtns.style.display = "none";
+    resetResultUI();
     craftClaim.style.display = "block";
+    if (!KEEP_NICK_ON_BACK && craftNick) craftNick.value = "";
     if (craftNick) craftNick.focus();
   }
 
+  function isModalOpen() {
+    return modal.getAttribute("aria-hidden") === "false";
+  }
+
   /* =========================
-     イベント：祭壇クリックでモーダル
+     イベント
   ========================= */
   gateBtn.addEventListener("click", (e) => {
     e.preventDefault();
     openModal();
   });
 
-  // モーダル背景クリックで閉じる（パネル内クリックは無視）
+  // 背景クリックで閉じる
   modal.addEventListener("click", (e) => {
     if (panel && panel.contains(e.target)) return;
     closeModal();
   });
 
   // やめる
-  if (cancel) {
-    cancel.addEventListener("click", () => closeModal());
-  }
+  if (cancel) cancel.addEventListener("click", closeModal);
 
-  // ESCで閉じる
+  // ESCで閉じる（判定を安全に）
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && modal.style.display === "block") closeModal();
+    if (e.key === "Escape" && isModalOpen()) closeModal();
   });
 
-  /* =========================
-     取得ボタン：スクショ画像を表示する
-  ========================= */
+  // 取得ボタン
   craftGetBtn.addEventListener("click", () => {
     const name = (craftNick?.value || "").trim();
-
     if (!name) {
-      // アラートはウザいので、入力欄にフォーカスだけ
       if (craftNick) craftNick.focus();
       return;
     }
 
-    if (LIMIT_ONCE_PER_DAY && alreadyTaken()) {
-      // うざい表示はしない（何もしない）
-      return;
-    }
+    if (LIMIT_ONCE_PER_DAY && alreadyTaken()) return;
 
-    // 結果表示を開く
     if (craftResult) craftResult.style.display = "block";
 
-    // スクショ画像を表示
     if (craftImgPreview) {
-      craftImgPreview.src = SCREENSHOT_IMAGE_URL; // ここが「表示する画像」
+      craftImgPreview.src = SCREENSHOT_IMAGE_URL;
       craftImgPreview.alt = `スクショ用画像（${name}）`;
     }
     if (craftImgWrap) craftImgWrap.style.display = "block";
-
-    // 取得後ボタンを表示
     if (craftAfterBtns) craftAfterBtns.style.display = "block";
 
-    // 1日1回制限
     if (LIMIT_ONCE_PER_DAY) setTaken();
 
-    // 画像のところまでスクロール（迷わせない）
     if (craftImgWrap) craftImgWrap.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
-  // ホームページを表示する
-  if (craftHomeBtn) {
-    craftHomeBtn.addEventListener("click", () => {
-      window.location.href = HOME_URL;
-    });
-  }
+  // ホーム
+  if (craftHomeBtn) craftHomeBtn.addEventListener("click", () => {
+    window.location.href = HOME_URL;
+  });
 
   // 戻る
-  if (craftBackBtn) {
-    craftBackBtn.addEventListener("click", () => {
-      backToInput();
-    });
-  }
+  if (craftBackBtn) craftBackBtn.addEventListener("click", backToInput);
 })();
-
 
