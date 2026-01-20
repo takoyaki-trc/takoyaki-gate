@@ -1,119 +1,171 @@
-/* =========================
-  祭壇モーダル内：スクショ取得UI（追加CSS）
-  ※既存の gate.css に「追記」でもOK
-========================= */
-
-/* 入れ物 */
-#craftClaim{
-  margin-top: 10px;
-}
-
-/* ラベル */
-.craft-claim__label{
-  display:block;
-  font-size: 12px;
-  opacity: .92;
-  line-height: 1.4;
-}
-
-/* 入力 */
-.craft-claim__input{
-  display:block;
+/* モーダル写真がはみ出すのを防ぐ */
+.gate-modal__photo{
   width: 100%;
-  box-sizing: border-box;
-  margin-top: 6px;
-  padding: 12px 12px;
-  border-radius: 12px;
-  border: 2px solid rgba(255,255,255,.88);
-  background: #0f0f0f;
-  color: #fff;
-  outline: none;
-  font-size: 14px;
-}
-
-.craft-claim__input::placeholder{
-  opacity: .55;
-}
-
-/* ボタン（既存 .gate-modal__btn があればそれに合わせる） */
-#craftGetBtn{
-  width: 100%;
-  margin-top: 10px;
-  padding: 14px 14px;
-  border-radius: 12px;
-  border: 2px solid rgba(255,255,255,.92);
-  background: #161616;
-  color: #fff;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-#craftGetBtn:disabled{
-  opacity: .35;
-  cursor: not-allowed;
-  filter: grayscale(1);
-}
-
-/* 結果エリア */
-#craftResult{
-  margin-top: 10px;
-}
-
-/* スクショ画像枠 */
-#craftImgWrap{
-  margin-top: 10px;
-}
-
-#craftImgPreview{
-  display: block;
-  width: 100%;
-  max-width: 100%;
   height: auto;
-  border: 2px solid rgba(255,255,255,.92);
-  border-radius: 10px;
-  background: #000;
-  image-rendering: pixelated;
+  max-height: 38vh;      /* ここで高さを制限（好みで調整OK） */
+  object-fit: contain;   /* 画像が切れずに収まる */
+  display: block;
 }
 
-/* 取得後ボタン（ホーム・戻る） */
-#craftAfterBtns{
-  margin-top: 10px;
+/* パネル自体がはみ出した時も切らない */
+.gate-modal__panel{
+  max-height: 90vh;
+  overflow: auto;
 }
 
-#craftHomeBtn,
-#craftBackBtn{
-  width: 100%;
-  margin-top: 10px;
-  padding: 14px 14px;
-  border-radius: 12px;
-  border: 2px solid rgba(255,255,255,.92);
-  background: #111;
-  color: #fff;
-  font-weight: 800;
+
+
+/* ===== たこ焼きゲート（祭壇） ===== */
+.map-wrap{
+  position: relative;
+}
+
+.map-wrap .spot.spot--gate{
+  position: absolute;
+  top: 68%;
+  left: 52%;
+  transform: translate(-50%, -100%);
+  width: clamp(124px, 12vw, 250px);
+  z-index: 40;
+  background: transparent;
+  border: 0;
+  padding: 0;
   cursor: pointer;
-}
-
-#craftBackBtn{
-  opacity: .85;
-}
-
-/* ちょい見栄え調整（モーダル内で詰まり防止） */
-.gate-modal__body{
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   overflow: visible;
 }
 
+/* 土台画像 */
+.map-wrap .spot--gate .spot__base{
+  width: 100%;
+  height: auto;
+  display: block;
+  image-rendering: pixelated;
+}
+
+/* アイコン重ね（※スマホでも押しやすい） */
+.map-wrap .spot--gate .spot__icon{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 55%;
+  height: auto;
+  display: block;
+  pointer-events: auto; /* ←戻したいならこのまま */
+  image-rendering: pixelated;
+  filter: drop-shadow(0 2px 0 rgba(0,0,0,.6));
+}
+
+/* ===== モーダル ===== */
+.gate-modal{
+  position: fixed;
+  inset: 0;
+  display: none;
+  place-items: center;
+  background: rgba(0,0,0,.65);
+  z-index: 9999;
+  padding: 16px;
+}
+.gate-modal.is-open{
+  display: grid;
+}
+
+.gate-modal__panel{
+  width: min(520px, 92vw);
+  background: #111;
+  color: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45);
+}
+
+.gate-modal__photo{
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.gate-modal__body{
+  padding: 12px 14px 14px;
+}
+
+.gate-modal__title{
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
 .gate-modal__desc{
-  line-height: 1.55;
+  white-space: pre-line;
+  line-height: 1.45;
+  opacity: .95;
 }
 
-/* スマホで押しやすく */
-@media (max-width: 480px){
-  #craftGetBtn,
-  #craftHomeBtn,
-  #craftBackBtn{
-    padding: 15px 14px;
-    border-radius: 14px;
-  }
+.gate-modal__btns{
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.gate-modal__btn{
+  flex: 1;
+  text-align: center;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.2);
+  background: transparent;
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.gate-modal__btn--go{
+  background: #fff;
+  color: #000;
+  border-color: transparent;
 }
 
 
+/* 職人レア枠：取得パネル */
+.craft-claim{
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,.12);
+}
+.craft-claim__label{
+  display: block;
+  font-size: 12px;
+  opacity: .9;
+  margin-bottom: 8px;
+}
+.craft-claim__input{
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.2);
+  background: rgba(255,255,255,.06);
+  color: #fff;
+  outline: none;
+}
+.craft-claim__result{
+  margin-top: 10px;
+}
+.craft-claim__text{
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-line;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+}
+.craft-claim__get{
+  margin-top: 6px;
+  width: 100%;
+}
+.craft-claim__copy{
+  margin-top: 10px;
+  width: 100%;
+}
