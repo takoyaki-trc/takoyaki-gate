@@ -1,7 +1,10 @@
 /* ==========================
    Takoyaki Fishing - CSS
+   【JSでモーダル生成する方式・確定版】
    ========================== */
 
+
+/* ===== 共通ラッパー ===== */
 .takofish-wrap{
   width: min(520px, 100%);
   margin: 12px auto;
@@ -12,10 +15,18 @@
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
+
+/* ===== ヘッダー ===== */
 .takofish-head{ margin-bottom: 10px; }
 .takofish-title{ font-weight: 800; font-size: 18px; }
-.takofish-sub{ font-size: 12px; opacity: .8; margin-top: 2px; }
+.takofish-sub{
+  font-size: 12px;
+  opacity: .8;
+  margin-top: 2px;
+}
 
+
+/* ===== UI ===== */
 .takofish-ui{
   display: flex;
   align-items: center;
@@ -33,7 +44,10 @@
   cursor: pointer;
   border-radius: 10px;
 }
-.takofish-btn[disabled]{ opacity: .45; cursor: not-allowed; }
+.takofish-btn[disabled]{
+  opacity: .45;
+  cursor: not-allowed;
+}
 
 .takofish-stats{
   display: flex;
@@ -42,6 +56,8 @@
   align-items: center;
 }
 
+
+/* ===== キャンバス ===== */
 .takofish-canvasbox{
   position: relative;
   width: 100%;
@@ -51,52 +67,28 @@
   overflow: hidden;
 }
 
-/* canvasはレスポンシブで縮む */
+/* canvasはレスポンシブ */
 #tfCanvas{
   width: 100%;
   height: auto;
   display: block;
   image-rendering: pixelated;
-  touch-action: none; /* ここ重要：スマホ操作を邪魔しない */
-}
-
-.takofish-overlay{
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: rgba(0,0,0,.55);
-}
-.takofish-panel{
-  width: min(360px, 90%);
-  border: 3px solid #fff;
-  background: #000;
-  color: #fff;
-  padding: 12px;
-  border-radius: 12px;
-}
-.takofish-panel-title{ font-weight: 900; margin-bottom: 6px; }
-.takofish-panel-text{ font-size: 13px; line-height: 1.5; opacity: .95; }
-.takofish-panel-hint{ font-size: 11px; opacity: .75; margin-top: 8px; }
-
-.takofish-note{
-  font-size: 11px;
-  opacity: .8;
-  margin-top: 8px;
+  touch-action: none; /* スマホ操作を邪魔しない */
 }
 
 
-/* ===== ゲーム用モーダル（全面オーバーレイ） ===== */
+/* ===== ゲーム用モーダル（JS生成方式） ===== */
+/* ※ display:none は絶対に書かない */
 .takofish-modal{
   position: fixed;
   inset: 0;
-  display: none;
+  display: grid;              /* ← 生成された瞬間に表示 */
+  place-items: center;
   z-index: 9999;
   background: rgba(0,0,0,.72);
   padding: 12px;
   box-sizing: border-box;
 }
-.takofish-modal.is-open{ display: grid; place-items: center; }
 
 .takofish-modal__inner{
   width: min(560px, 96vw);
@@ -119,16 +111,34 @@
   cursor: pointer;
 }
 
-/* キャラボタン（例） */
+
+/* ===== 注意書き ===== */
+.takofish-note{
+  font-size: 11px;
+  opacity: .8;
+  margin-top: 8px;
+}
+
+
+/* ===== トップ用：入口キャラ ===== */
 .takomin{
   background: transparent;
   border: none;
   padding: 0;
   cursor: pointer;
 }
+
 .takomin img{
   width: 72px;
   height: auto;
   image-rendering: pixelated;
   display: block;
+}
+
+/* 位置を決めたい場合はここを調整 */
+.takomin--fish{
+  /* position: absolute; */
+  /* left: 40%; */
+  /* top: 60%; */
+  z-index: 50;
 }
