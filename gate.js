@@ -16,7 +16,7 @@
     craftId: "craft_now_001",
     name: "🔥 職人の祭壇 🔥",
     url: "https://takoyakinana.1net.jp/",
-    icon: "https://ul.h3z.jp/LW0yFZ0C.png",
+    icon: "https://ul.h3z.jp/n5MVIBBU.png",
     photo: "https://ul.h3z.jp/i7T64HBV.png"
   };
 
