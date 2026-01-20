@@ -65,43 +65,58 @@
     { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/696151578a8ac/50.png", link:"", lines:["ここまで来たなら、もう終わりだ。","終わりってのは始まりだ。","始まりは一枚だ。","一枚は一舟だ。","一舟は一歩だ。","一歩は一周だ。","一周したらまた来る。","……また会おう。"] }
   ];
 
-  function pick(arr){
+    function pick(arr){
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
   let sayTimer = null;
 
   function boot(){
-    const imgEl   = document.getElementById("takominImg");
-    const linkEl  = document.getElementById("takominLink");
-    const lineEl  = document.getElementById("takominLine");
-    const textEl  = document.querySelector(".takomin-text");
+    const imgEl  = document.getElementById("takominImg");
+    const linkEl = document.getElementById("takominLink");
+    const lineEl = document.getElementById("takominLine");
+    const textEl = document.querySelector(".takomin-text");
 
     // 必須DOMがないページでは何もしない（他ページで読んでも壊れない）
     if (!imgEl || !linkEl || !lineEl || !textEl) return;
+
+    // CSSアニメが確実に再発火するようにクラスを付け直す
+    function animateSwap(nextText){
+      // まずフェードアウト
+      textEl.classList.remove("fade-in");
+      textEl.classList.add("fade-out");
+
+      setTimeout(() => {
+        // テキスト更新
+        lineEl.textContent = nextText;
+
+        // フェードアウト解除 → フェードインを「付け直し」て再発火
+        textEl.classList.remove("fade-out");
+        textEl.classList.remove("fade-in");
+        void textEl.offsetWidth; // reflow（これが超重要）
+        textEl.classList.add("fade-in");
+      }, 200);
+    }
 
     // セリフを回し続ける
     function startTalking(npc){
       if (sayTimer) clearTimeout(sayTimer);
 
-      function sayOnce(){
-        textEl.classList.add("fade-out");
-
-        setTimeout(() => {
-          lineEl.textContent = pick(npc.lines);
-          textEl.classList.remove("fade-out");
-          textEl.classList.add("fade-in");
-
-          sayTimer = setTimeout(
-            sayOnce,
-            Math.floor(Math.random() * (SAY_MAX - SAY_MIN) + SAY_MIN)
-          );
-        }, 200);
-      }
-
-      // 初回
+      // 初回（即表示＋フェードイン確実）
+      textEl.classList.remove("fade-out");
+      textEl.classList.remove("fade-in");
       lineEl.textContent = pick(npc.lines);
+      void textEl.offsetWidth;
       textEl.classList.add("fade-in");
+
+      function sayOnce(){
+        animateSwap(pick(npc.lines));
+
+        sayTimer = setTimeout(
+          sayOnce,
+          Math.floor(Math.random() * (SAY_MAX - SAY_MIN) + SAY_MIN)
+        );
+      }
 
       sayTimer = setTimeout(
         sayOnce,
@@ -132,7 +147,7 @@
 
   // BASEは挿入位置が前後することがあるので、確実にDOM後に起動
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
+    document.addEventListener("DOMContentLoaded", boot, { once:true });
   } else {
     boot();
   }
