@@ -1,103 +1,202 @@
-/* ===== ゲート（建物） ===== */
-.map-wrap .spot{
-  position: absolute;
-  display: block;
-  transform: translate(-50%, -100%);
-  width: clamp(124px, 12vw, 250px);
-  z-index: 40;
-  background: transparent;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
+/* 空レイヤー：BASEの背景に負けない */
+body::before{
+  content:"";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+
+  /* 3層＋ビネット */
+  background:
+    /* ビネット（端を少し暗く） */
+    radial-gradient(
+      ellipse at center,
+      rgba(0,0,0,0) 55%,
+      rgba(0,0,0,0.18) 100%
+    ),
+    /* 空の3層（JSがここを書き換える） */
+    var(--sky, linear-gradient(
+      #87b8e5 0%,
+      #cfe8ff 55%,
+      #ffffff 100%
+    ));
+
+  transition: background 6s linear;
 }
 
-.map-wrap .spot__base,
-.map-wrap .spot__icon{
-  width: 100%;
-  height: auto;
+/* ===== 太陽 / 月 レイヤー ===== */
+#sky-orb{
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 998; /* コンテンツより下想定 */
+}
+
+/* 共通 */
+#sky-orb::before{
+  content:"";
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  top: 12%;
+  left: 10%;
+  opacity: 0;
+  transition: opacity 6s linear, filter 6s linear;
+}
+
+/* 太陽（昼） */
+html.day #sky-orb::before{
+  background: radial-gradient(circle at 30% 30%, #fff8d6, #ffd86b 60%, #f2b705 100%);
+  box-shadow: 0 0 40px rgba(255,200,80,0.6);
+  opacity: 1;
+}
+
+/* 月（夜） */
+html.is-night #sky-orb::before{
+  background: radial-gradient(circle at 30% 30%, #ffffff, #e6e6e6 70%, #cfcfcf 100%);
+  box-shadow: 0 0 24px rgba(255,255,255,0.5);
+  filter: brightness(0.95);
+  opacity: 1;
+}
+
+/* スマホは少し小さく */
+@media (max-width: 480px){
+  #sky-orb::before{
+    width: 90px;
+    height: 90px;
+  }
+}
+
+/* “今の位置”だけ光る */
+.phase-dot.is-active{
+  opacity: 1;
+  transform: scale(1.0);
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.35));
+}
+
+/* 太陽（左端） */
+.phase-dot.sun{
+  background: radial-gradient(circle at 30% 30%, #fff7c8 0%, #ffd86b 55%, #f2b705 100%);
+  box-shadow: 0 0 14px rgba(255,200,80,0.35);
+}
+
+/* 月のベース（右端側） */
+.phase-dot.moon{
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #e6e6e6 70%, #cfcfcf 100%);
+}
+
+/* 月相：黒い影を重ねて欠けを作る（CSSだけでOK） */
+.phase-dot.moon::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background: rgba(15,20,32,0.95);
+  transform: translateX(var(--shadow-x, 0px));
+}
+
+/* 端末で大きさ調整したいならここだけ触る */
+@media (max-width:480px){
+  #phase-strip .phase-dot{ width:36px; height:36px; }
+}
+
+/* ===== 太陽／月が動くレール ===== */
+#phase-strip{
+  position: relative;
+  width: 220px;          /* 横幅（好みで調整OK） */
+  height: 54px !important;
+  margin: 0 auto 4px !important;  /* 下だけ4pxに */
+  padding: 0 !important;
+}
+
+/* ===== 動く本体（共通） ===== */
+#phase-orb{
+  position: absolute;
+  top: 0 !important;
+  left: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  image-rendering: pixelated;
+  transition:
+    transform 0.6s ease,
+    filter 0.6s ease,
+    background 0.6s ease;
+}
+
+/* ===== 太陽（昼） ===== */
+#phase-orb.sun{
+  background: radial-gradient(
+    circle at 30% 30%,
+    #fff7c8 0%,
+    #ffd86b 55%,
+    #f2b705 100%
+  );
+  box-shadow: 0 0 14px rgba(255,200,80,0.35);
+  transform: scale(1);     /* 太陽は大きめ */
+}
+
+/* ===== 月（夜） ===== */
+#phase-orb.moon{
+  background: radial-gradient(
+    circle at 35% 30%,
+    #ffffff 0%,
+    #e6e6e6 70%,
+    #cfcfcf 100%
+  );
+  transform: scale(0.8);   /* 月は小さく */
+}
+
+/* ===== 月の満ち欠け（影） ===== */
+#phase-orb.moon::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background: rgba(15,20,32,0.95);
+  transform: translateX(var(--shadow-x, 0px));
+}
+
+/* ===== スマホ微調整 ===== */
+@media (max-width:480px){
+  #phase-strip{ width: 200px; }
+  #phase-orb{ width: 36px; height: 36px; }
+}
+
+/* 画像：親の幅にフィット。BASE側の変な指定を潰す */
+.map-wrap .map-img{
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
   display: block;
   image-rendering: pixelated;
 }
 
-/* ここを「親の基準」にしたいので、spot自体を基準化 */
-.map-wrap .spot{ position:absolute; }
-.map-wrap .spot--gate{ top: 68%; left: 52%; }
-
-/* アイコンを土台の上に重ねる */
-.map-wrap .spot__icon{
-  position: absolute;
-  left: 50%;
-  top: 45%;
-  transform: translate(-50%, -50%);
-  width: 55%;
-  pointer-events: none;
-  filter: drop-shadow(0 2px 0 rgba(0,0,0,.6));
+/* 当たり判定 */
+.map-wrap .hotspot{
+  position:absolute;
+  display:block;
+  cursor:pointer;
+  z-index: 5; /* 画像の上に乗せる */
+  /* 調整中だけON */
+  /* background: rgba(0,255,255,0.25); */
 }
 
-/* ===== ワンクッション（モーダル） ===== */
-.gate-modal{
-  position: fixed;
-  inset: 0;
-  display: none;
-  place-items: center;
-  background: rgba(0,0,0,.65);
-  z-index: 9999;
-  padding: 16px;
-}
-.gate-modal.is-open{ display: grid; }
-
-.gate-modal__panel{
-  width: min(520px, 92vw);
-  background: #111;
-  color: #fff;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,.45);
+/* ホバー演出（PC） */
+.map-wrap .hotspot:hover{
+  outline: 2px solid rgba(255,255,200,0.9);
+  box-shadow: 0 0 12px rgba(255,255,200,0.9);
 }
 
-.gate-modal__photo{
-  width: 100%;
-  height: auto;
+.title-gif{
+  width: min(720px, 90%);
+  margin: 0 auto 24px;
   display: block;
 }
 
-.gate-modal__body{
-  padding: 12px 14px 14px;
-}
-
-.gate-modal__title{
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-
-.gate-modal__desc{
-  white-space: pre-line;
-  line-height: 1.45;
-  opacity: .95;
-}
-
-.gate-modal__btns{
-  display: flex;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.gate-modal__btn{
-  flex: 1;
-  text-align: center;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,.2);
-  background: transparent;
-  color: #fff;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.gate-modal__btn--go{
-  background: #fff;
-  color: #000;
-  border-color: transparent;
+.map-wrap{
+  position: relative;
+  width: min(800px, 100%);
+  margin: 0 auto;
 }
