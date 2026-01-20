@@ -29,17 +29,7 @@
     { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/696144a24200c/18.png", link:"", lines:["焼き時間とレア度の相関…","理論上はここだ。","実験は続く。","仮説は裏切られる。","だが、それが楽しい。","記録を取れ。","失敗もデータだ。","次は条件を変える。"] },
     { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/6961473c6efc8/19.png", link:"", lines:["表通りだけが村じゃない。","静かな場所ほど熱い。","……気づいたか？","足音を消せ。","光を背にするな。","ここは通好みだ。","表に出るな。","覚えておけ。"] },
     { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/6961474dded89/20.png", link:"", lines:["今日は何か起きそうだ！","袋、開ける瞬間が一番だろ？","外れ？それも祭りだ！","音が違うぞ！","この空気、好きだ！","当たる気がする！","叫びたいな！","さぁ行こう！"] },
-
-  
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/696150d10e41a/41.png", link:"", lines:["この村の夜は静かだ。","静かすぎて怖いか？","怖いなら正しい。","正しいなら進め。","進めば景色が変わる。","変われば君も変わる。","変わった君が伝説だ。","……寝るな。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/696150df7fcb0/42.png", link:"", lines:["封を切る時、音を聞け。","その音が運だ。","軽い音の日もある。","重い音の日もある。","重い日は当たりやすい。","…とか言ってみる。","信じた？","それが村だ。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/696150ed459d8/43.png", link:"", lines:["保存は“未来への焼き”だ。","湿気から守れ。","光からも守れ。","でも触れ。","触れないと愛が死ぬ。","愛は価値になる。","価値は物語になる。","……難しいだろ。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/696150fda7a06/44.png", link:"", lines:["君の推しタコ民は誰だ？","推しは増える。","増えると財布が減る。","減ると工夫が増える。","工夫が増えると楽しい。","楽しいと沼が深い。","深いと抜けない。","ようこそ。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/6961510ccd25f/45.png", link:"", lines:["今日は運が悪い？","それもデータだ。","外れの山に当たりが埋まる。","当たりの山に外れが埋まる。","混ぜると世界が回る。","回ると君が回す。","回せ。","……回せ。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/6961511c4f082/46.png", link:"", lines:["君の手は温かいな。","温かい手は焼きに向く。","冷たい手は運に向く。","どっちでもいい。","結局は回数だ。","回数は裏切らない。","裏切るのは油断だ。","……油断するな。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/6961512abccca/47.png", link:"", lines:["店頭と通販、どっち派？","どっちも村の住民だ。","店頭は空気が買える。","通販は距離を焼ける。","距離が焼ければ近い。","近いなら仲間だ。","仲間なら祝え。","今日も焼け。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/696151385682e/48.png", link:"", lines:["サイン？欲しいのか。","サインは証明だ。","証明は物語だ。","物語は価値だ。","価値は未来だ。","未来は今だ。","今はここだ。","……書こうか。"] },
-    { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/69615147cd70a/49.png", link:"", lines:["今日のおすすめ？","迷うなら定番だ。","定番は強い。","でも変化も強い。","変化は話題だ。","話題は拡散だ。","拡散は伝説だ。","……全部食え。"] },
+ { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/69615147cd70a/49.png", link:"", lines:["今日のおすすめ？","迷うなら定番だ。","定番は強い。","でも変化も強い。","変化は話題だ。","話題は拡散だ。","拡散は伝説だ。","……全部食え。"] },
     { img:"https://basefile.akamaized.net/takoyakitrc-base-shop/696151578a8ac/50.png", link:"", lines:["ここまで来たなら、もう終わりだ。","終わりってのは始まりだ。","始まりは一枚だ。","一枚は一舟だ。","一舟は一歩だ。","一歩は一周だ。","一周したらまた来る。","……また会おう。"] }
   ];
 
