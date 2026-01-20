@@ -185,3 +185,9 @@
   font-weight: 700;
 }
 
+
+/* X用画像を作る ボタンを非表示（安全） */
+#craftImgBtn {
+  display: none !important;
+}
+
