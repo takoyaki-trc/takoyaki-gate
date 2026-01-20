@@ -1,175 +1,102 @@
 (() => {
-  "use strict";
+  const isNight = () => document.documentElement.classList.contains("is-night");
 
-  /* ===============================
-     設定
-  =============================== */
+  const gate = document.querySelector(".spot--gate");
+  if(!gate) return;
 
-  // 通常時（職人が出てない時間）のモーダル画像
-  const NORMAL_PHOTO = "https://ul.h3z.jp/i7T64HBV.png"; // ←通常の画像にしたいURL
-  const NORMAL_TITLE = "職人の祭壇";
-  const NORMAL_DESC  = "今だけ5分間のレア祭壇です。";
+  const baseImg = gate.querySelector(".spot__base");
+  const iconImg = gate.querySelector(".spot__icon");
 
-  // 5人の職人：各 1日5分（JST）
-  // ★ photo は必ずあなたの職人画像URLに置き換えて
-  const CRAFTSMEN = [
-    { id:"craft_01", name:"職人①", time:"12:00", photo:"https://ul.h3z.jp/REPLACE_1.png" },
-    { id:"craft_02", name:"職人②", time:"14:00", photo:"https://ul.h3z.jp/REPLACE_2.png" },
-    { id:"craft_03", name:"職人③", time:"16:00", photo:"https://ul.h3z.jp/REPLACE_3.png" },
-    { id:"craft_04", name:"職人④", time:"18:00", photo:"https://ul.h3z.jp/REPLACE_4.png" },
-    { id:"craft_05", name:"職人⑤", time:"20:00", photo:"https://ul.h3z.jp/REPLACE_5.png" },
+  // ✅ モーダル要素
+  const modal  = document.getElementById("gateModal");
+  const mPhoto = document.getElementById("gateModalPhoto");
+  const mTitle = document.getElementById("gateModalTitle");
+  const mDesc  = document.getElementById("gateModalDesc");
+  const btnGo  = document.getElementById("gateModalGo");
+  const btnCancel = document.getElementById("gateModalCancel");
+
+  // ✅ 時間帯ごとに「行き先URL」と「上乗せアイコン」と「モーダルに出す写真」
+  const DEST = [
+    { hours:[0,6],   name:"すっぴん",     url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/G9HOojAP.png",  photo:"https://ul.h3z.jp/zqoEDppD.jpg" },
+    { hours:[6,12],  name:"ねぎ味噌",     url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/8ipISSBp.png",  photo:"https://ul.h3z.jp/hqi2ldka.jpg" },
+    { hours:[12,18], name:"めんたいマヨ", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/IShYv1or.png",  photo:"https://ul.h3z.jp/uJT6MP7r.jpg" },
+    { hours:[18,21], name:"夜の店ページ", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/UHcLPRSi.png",  photo:"real_04.jpg" },
+    { hours:[21,24], name:"夜の店ページ", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/lLEWj0Pu.png",  photo:"real_05.jpg" }
   ];
 
-  const WINDOW_MIN = 5; // 出現時間（分）
+  const pickDest = (d = new Date()) => {
+    const h = d.getHours();
+    return DEST.find(x => h >= x.hours[0] && h < x.hours[1]) || DEST[0];
+  };
 
-  /* ===============================
-     ユーティリティ
-  =============================== */
-  const $ = (sel, root=document) => root.querySelector(sel);
-  const byId = (id) => document.getElementById(id);
-
-  function pad(n){ return String(n).padStart(2,"0"); }
-
-  function todayKeyJST(){
-    const d = new Date();
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  function applyBase(){
+    if(!baseImg) return;
+    const url = isNight() ? baseImg.dataset.night : baseImg.dataset.day;
+    if(url) baseImg.src = url;
   }
 
-  function jstStampHM(){
-    const d = new Date();
-    return `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  function applyIcon(){
+    const dest = pickDest();
+    if(iconImg && dest.icon) iconImg.src = dest.icon;
+    gate._dest = dest; // 現在の行き先を保持
   }
 
-  function timeToMin(hhmm){
-    const [h,m] = hhmm.split(":").map(Number);
-    return (h*60 + m);
-  }
+  function openModal(dest){
+    if(!modal) return;
 
-  function getActiveCraftsman(){
-    const now = new Date();
-    const nowMin = now.getHours()*60 + now.getMinutes();
-    for (const c of CRAFTSMEN){
-      const start = timeToMin(c.time);
-      const end = start + WINDOW_MIN;
-      if (nowMin >= start && nowMin < end) return c;
+    if(mPhoto){
+      mPhoto.src = dest.photo || "";
+      mPhoto.alt = dest.name ? `たこ焼き写真：${dest.name}` : "たこ焼き写真";
     }
-    return null;
-  }
 
-  /* ===============================
-     DOM
-  =============================== */
-  const gate = $(".spot--gate");
-  if (!gate) return;
+    if(mTitle) mTitle.textContent = "たこ焼きゲート";
+    if(mDesc)  mDesc.textContent  = `この時間の行き先：${dest.name}\n行きますか？`;
 
-  // タップを奪われない保険（アイコンが上に乗ってても押せる）
-  const iconImg = $(".spot__icon", gate);
-  if (iconImg) iconImg.style.pointerEvents = "none";
-
-  const modal  = byId("gateModal");
-  const panel  = modal ? modal.querySelector(".gate-modal__panel") : null;
-
-  const mPhoto = byId("gateModalPhoto");
-  const mTitle = byId("gateModalTitle");
-  const mDesc  = byId("gateModalDesc");
-
-  const btnCancel = byId("gateModalCancel");
-  const btnGo = byId("gateModalGo"); // HTMLに残っててもOK（CSSで非表示でOK）
-
-  const craftClaim = byId("craftClaim");
-  const craftResult = byId("craftResult");
-  const craftResultText = byId("craftResultText");
-
-  if (!modal || !mPhoto || !mTitle || !mDesc || !craftResult || !craftResultText) return;
-
-  /* ===============================
-     取得（同端末・同日・職人ごとに1回）
-  =============================== */
-  function claimedKey(craftId){
-    return `craft_claimed_${todayKeyJST()}_${craftId}`;
-  }
-  function serialKey(craftId){
-    return `craft_serial_${todayKeyJST()}_${craftId}`;
-  }
-  function nextSerial(craftId){
-    const k = serialKey(craftId);
-    const n = (Number(localStorage.getItem(k)) || 0) + 1;
-    localStorage.setItem(k, String(n));
-    return String(n).padStart(3, "0");
-  }
-
-  function claimOrGetText(c){
-    const k = claimedKey(c.id);
-    const already = localStorage.getItem(k);
-    if (already) return already;
-
-    const serial = nextSerial(c.id);
-    const time = new Date().toLocaleString("ja-JP");
-
-    const text =
-`【職人レア枠 取得】
-職人：${c.name}
-取得日時：${time}
-取得No：${serial}
-
-#たこ焼きトレカ #たこ焼きゲート`;
-
-    localStorage.setItem(k, text);
-    return text;
-  }
-
-  /* ===============================
-     モーダル開閉
-  =============================== */
-  function openModal(){
-    const c = getActiveCraftsman();
-
-    // ★ここが重要：職人画像（モーダル上の画像）を必ずセットする
-    mPhoto.src = (c && c.photo) ? c.photo : NORMAL_PHOTO;
-
-    mTitle.textContent = c ? `${c.name} の祭壇` : NORMAL_TITLE;
-
-    // 「取得しますか？」は出さない。開いた時点で取得日時を表示したいならここ。
-    mDesc.textContent = c
-      ? `${NORMAL_DESC}\n\n取得日時：${jstStampHM()}`
-      : NORMAL_DESC;
-
-    // 使わない要素は非表示（壊さないために存在しててもOK）
-    if (btnGo) btnGo.href = "#";
-    if (craftClaim) craftClaim.style.display = "none";
-
-    craftResult.style.display = "none";
-    craftResultText.textContent = "";
-
-    // 職人出現中だけ：自動で結果を表示
-    if (c){
-      const text = claimOrGetText(c);
-      craftResultText.textContent = text;
-      craftResult.style.display = "block";
-    }
+    if(btnGo) btnGo.href = dest.url;
 
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
   }
 
   function closeModal(){
+    if(!modal) return;
     modal.classList.remove("is-open");
     modal.setAttribute("aria-hidden", "true");
   }
 
-  // 祭壇タップ
-  gate.addEventListener("click", (e) => {
-    e.preventDefault();
-    openModal();
+  // モーダル閉じる操作
+  if(btnCancel) btnCancel.addEventListener("click", closeModal);
+  if(modal) modal.addEventListener("click", (e) => { if(e.target === modal) closeModal(); });
+  document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeModal(); });
+
+  // 初期表示
+  applyBase();
+  applyIcon();
+
+  // 昼夜切替を監視して土台画像を更新
+  new MutationObserver(muts => {
+    for(const m of muts){
+      if(m.attributeName === "class"){
+        applyBase();
+        break;
+      }
+    }
+  }).observe(document.documentElement, { attributes: true });
+
+  // 1分ごとに「時間が変わったら」上乗せアイコン更新
+  let lastHour = new Date().getHours();
+  setInterval(() => {
+    const h = new Date().getHours();
+    if(h !== lastHour){
+      lastHour = h;
+      applyIcon();
+    }
+  }, 60 * 1000);
+
+  // ✅ クリック：直飛びではなく “ワンクッション（モーダル）” を出す
+  gate.addEventListener("click", () => {
+    const dest = gate._dest || pickDest();
+    openModal(dest);
   });
-
-  // 戻る
-  if (btnCancel) btnCancel.addEventListener("click", closeModal);
-
-  // 背景クリックで閉じる（パネル内は閉じない）
-  modal.addEventListener("click", (e) => {
-    if (panel && panel.contains(e.target)) return;
-    closeModal();
-  });
-
 })();
+
