@@ -1,49 +1,19 @@
 /* =========================
-   boss.css（壊れない用：boss系だけ）
-   - 既存の地図/スポットを触らない
-   - 位置指定（top/left/width）もここに含める
+   boss.css（演出専用）
+   ※ 地図座標・night-only は含めない
 ========================= */
 
-/* 既存と互換：夜だけ表示 */
-.night-only{ display:none; }
-html.is-night .night-only{ display:block; }
-
-/* ✅ ボスゲート（画像リンク） */
-.boss-gate{
-  position: absolute;
-  top: 41.3%;       /* ← あなたの値のまま */
-  left: 50%;        /* ← あなたの値のまま */
-  transform: translateX(-50%);
-  width: 18%;       /* ← あなたの値のまま */
-  z-index: 12;
-  display: block;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  /* クリックを安定させる（表示崩れには影響なし） */
-  pointer-events: auto;
-}
-
-/* 画像そのもの */
-.boss-gate img{
-  width: 100%;
-  height: auto;
-  display: block;
-  image-rendering: pixelated;
-  -webkit-user-drag: none;
-  user-select: none;
-}
-
-/* 夜のボス感：ふわっと脈動（transform競合を避けるため、translateX込みのまま） */
+/* 夜のボス感：ふわっと脈動（transform競合回避） */
 html.is-night .boss-gate{
   animation: bossPulse 1.6s ease-in-out infinite;
 }
 @keyframes bossPulse{
-  0%{ transform: translateX(-50%) scale(1);      opacity: 0.95; }
-  50%{ transform: translateX(-50%) scale(1.04);  opacity: 1; }
-  100%{ transform: translateX(-50%) scale(1);    opacity: 0.95; }
+  0%{ transform: translateX(-50%) scale(1);       opacity: 0.95; }
+  50%{ transform: translateX(-50%) scale(1.04);   opacity: 1; }
+  100%{ transform: translateX(-50%) scale(1);     opacity: 0.95; }
 }
 
-/* ===== ボス会話（戦う前）オーバーレイ ===== */
+/* ===== ボス会話（戦う前） ===== */
 .boss-talk{
   position: fixed;
   inset: 0;
@@ -85,7 +55,7 @@ html.is-night .boss-gate{
 }
 .boss-talk-buttons button:active{ transform: translateY(1px); }
 
-/* ===== バトル結果オーバーレイ ===== */
+/* ===== バトル結果 ===== */
 .boss-overlay{
   position: fixed;
   inset: 0;
@@ -118,7 +88,6 @@ html.is-night .boss-gate{
 }
 .boss-cardimg{
   width: 100%;
-  height: auto;
   display: block;
   image-rendering: pixelated;
 }
@@ -131,7 +100,7 @@ html.is-night .boss-gate{
   min-height: 2.8em;
   opacity: 0.95;
 }
-.boss-footer{ margin-top: 10px; font-size: 12px; opacity: 0.75; line-height: 1.4; }
+.boss-footer{ margin-top: 10px; font-size: 12px; opacity: 0.75; }
 
 .boss-buttons{
   display: flex;
@@ -146,7 +115,6 @@ html.is-night .boss-gate{
   color: #fff;
   cursor: pointer;
 }
-.boss-buttons button:active{ transform: translateY(1px); }
 
 /* 激レア：虹枠 */
 .boss-panel.rainbow{
@@ -156,3 +124,4 @@ html.is-night .boss-gate{
     linear-gradient(90deg, #ff3, #f3f, #3ff, #3f3, #ff3) border-box;
   border: 3px solid transparent;
 }
+
