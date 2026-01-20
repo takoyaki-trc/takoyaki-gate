@@ -1,0 +1,65 @@
+/* takomin-npc.css */
+
+/* ===== 全体配置 ===== */
+.takomin-area{
+  margin:12px auto 24px;
+  display:flex;
+  justify-content:center;
+  padding:0 10px;
+  box-sizing:border-box;
+}
+
+/* ===== 横並びの基準（ここでサイズも決める） ===== */
+.takomin-wrap{
+  display:flex !important;
+  flex-direction:row !important;
+  flex-wrap:nowrap !important;         /* ←スマホでも折り返し禁止 */
+  align-items:flex-start !important;   /* ←上揃え */
+  gap:8px;
+  width:min(520px, 100%);              /* ←画面内に収める */
+  box-sizing:border-box;
+
+  --npc-size: 40px;                    /* ★タコ民は全て40px */
+}
+
+/* ===== タコ民画像（縮まない・固定） ===== */
+.takomin-avatar{
+  flex:0 0 var(--npc-size) !important; /* ←絶対縮まない */
+  width:var(--npc-size);
+  height:var(--npc-size);
+  display:block;
+  text-decoration:none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.takomin-avatar img{
+  width:var(--npc-size) !important;
+  height:var(--npc-size) !important;   /* ★縦も固定 */
+  object-fit:contain;                  /* 画像比率が違っても収める */
+  display:block;
+  image-rendering:pixelated;
+}
+
+/* ===== 横テキスト（壊れない） ===== */
+.takomin-text{
+  flex:1 1 auto !important;
+  min-width:0 !important;              /* ★これがないとスマホで崩れやすい */
+  max-width:100%;
+  padding:6px 10px;
+  background:#000;
+  color:#fff;
+  font-size:13px;
+  line-height:1.6;
+  font-family:"DotGothic16","PixelMplus10",monospace;
+  box-sizing:border-box;
+  word-break:break-word;
+}
+
+/* ===== フェード（JS用） ===== */
+.fade-out{ opacity:0; transition:opacity .2s ease; }
+.fade-in{ opacity:1; transition:opacity .2s ease; }
+
+/* ===== スマホ微調整（横並びは維持） ===== */
+@media (max-width:480px){
+  .takomin-text{ font-size:12px; }
+}
