@@ -132,3 +132,16 @@ html.is-night .boss-gate{
   z-index: 20001 !important;
 }
 
+/* ===== PCでも確実に暗幕を出す（最強固定） ===== */
+.boss-talk,
+.boss-overlay{
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0,0,0,0.85) !important;
+}
+
+/* 表示時に確実に出す（JSがdisplay:blockでもgridでもOK） */
+.boss-talk[style*="display: block"],
+.boss-overlay[style*="display: block"]{
+  display: block !important;
+}
