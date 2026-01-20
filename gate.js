@@ -190,10 +190,18 @@
   }
 
   function showResult(text){
-    craftResultText.textContent = text;
-    craftResult.style.display = "block";
-    craftImgBtn.style.display = "block";
-  }
+  if (!hasCraftUI) return;
+
+  // ▼ 入力エリア（テキストボックス＋取得ボタン）を消す
+  craftClaim.style.display = "none";
+
+  // ▼ 結果だけ表示
+  craftResultText.textContent = text;
+  craftResult.style.display = "block";
+
+  // ▼ スクショ画像取得ボタンは使わないので消す
+  craftImgBtn.style.display = "none";
+}
 
   if (craftGetBtn){
     craftGetBtn.addEventListener("click", () => {
