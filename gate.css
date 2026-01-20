@@ -1,17 +1,42 @@
-/* ===============================
-   モーダル写真：はみ出し防止
-=============================== */
-.gate-modal__photo{
-  width: 100%;
-  height: auto;
-  max-height: 38vh;        /* 写真が大きすぎないよう制限 */
-  object-fit: contain;     /* 切れずに収める */
+/* ===== ゲート（建物） ===== */
+.map-wrap .spot{
+  position: absolute;
   display: block;
+  transform: translate(-50%, -100%);
+  width: clamp(124px, 12vw, 250px);
+  z-index: 40;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
-/* ===============================
-   モーダル全体
-=============================== */
+.map-wrap .spot__base,
+.map-wrap .spot__icon{
+  width: 100%;
+  height: auto;
+  display: block;
+  image-rendering: pixelated;
+}
+
+/* ここを「親の基準」にしたいので、spot自体を基準化 */
+.map-wrap .spot{ position:absolute; }
+.map-wrap .spot--gate{ top: 68%; left: 52%; }
+
+/* アイコンを土台の上に重ねる */
+.map-wrap .spot__icon{
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  transform: translate(-50%, -50%);
+  width: 55%;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 0 rgba(0,0,0,.6));
+}
+
+/* ===== ワンクッション（モーダル） ===== */
 .gate-modal{
   position: fixed;
   inset: 0;
@@ -21,19 +46,21 @@
   z-index: 9999;
   padding: 16px;
 }
-.gate-modal.is-open{
-  display: grid;
-}
+.gate-modal.is-open{ display: grid; }
 
 .gate-modal__panel{
   width: min(520px, 92vw);
   background: #111;
   color: #fff;
   border-radius: 12px;
+  overflow: hidden;
   box-shadow: 0 10px 30px rgba(0,0,0,.45);
+}
 
-  max-height: 90vh;        /* 高さ制限 */
-  overflow: auto;          /* 中身が多い時はスクロール */
+.gate-modal__photo{
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .gate-modal__body{
@@ -51,9 +78,6 @@
   opacity: .95;
 }
 
-/* ===============================
-   モーダル下部ボタン
-=============================== */
 .gate-modal__btns{
   display: flex;
   gap: 10px;
@@ -77,100 +101,3 @@
   color: #000;
   border-color: transparent;
 }
-
-/* 「行く」ボタンは使わない */
-#gateModalGo{
-  display: none;
-}
-
-/* ===============================
-   たこ焼きゲート（祭壇）
-=============================== */
-.map-wrap{
-  position: relative;
-}
-
-.map-wrap .spot.spot--gate{
-  position: absolute;
-  top: 68%;
-  left: 52%;
-  transform: translate(-50%, -100%);
-  width: clamp(124px, 12vw, 250px);
-  z-index: 40;
-  background: transparent;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  overflow: visible;
-}
-
-/* 土台 */
-.map-wrap .spot--gate .spot__base{
-  width: 100%;
-  height: auto;
-  display: block;
-  image-rendering: pixelated;
-}
-
-/* 中央アイコン */
-.map-wrap .spot--gate .spot__icon{
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 55%;
-  height: auto;
-  display: block;
-  pointer-events: auto;
-  image-rendering: pixelated;
-  filter: drop-shadow(0 2px 0 rgba(0,0,0,.6));
-}
-
-/* ===============================
-   職人レア枠（取得エリア）
-=============================== */
-.craft-claim{
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255,255,255,.12);
-}
-
-/* 名前入力は使わないので完全に消す */
-#craftNick,
-.craft-claim__label{
-  display: none !important;
-}
-
-/* 取得ボタン */
-.craft-claim__get{
-  width: 100%;
-  margin-top: 6px;
-}
-
-/* 取得結果テキスト */
-#craftResult{
-  margin-top: 10px;
-}
-
-#craftResultText{
-  font-size: 12px;
-  line-height: 1.45;
-  white-space: pre-line;
-  padding: 10px;
-  border-radius: 10px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.12);
-}
-
-/* ===============================
-   使わない要素は完全に非表示
-=============================== */
-#craftImgBtn,
-#craftImgWrap{
-  display: none !important;
-}
-
-.map-wrap .spot--gate .spot__icon{ pointer-events: none !important; }
-
