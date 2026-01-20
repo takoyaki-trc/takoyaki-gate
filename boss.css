@@ -1,26 +1,52 @@
 /* =========================
-   boss.css（演出専用）
-   ※ 地図座標・night-only は含めない
+   boss.css（演出専用：最終・安全版）
+   - 位置座標や night-only は含めない（BASE側で管理）
+   - モーダルは gate-modal より必ず上
+   - PC/スマホで暗幕が出ない事故を潰す
 ========================= */
 
-/* 夜のボス感：ふわっと脈動（transform競合回避） */
+/* 夜のボス感：ふわっと脈動（boss-gateに適用） */
 html.is-night .boss-gate{
   animation: bossPulse 1.6s ease-in-out infinite;
 }
 @keyframes bossPulse{
-  0%{ transform: translateX(-50%) scale(1);       opacity: 0.95; }
-  50%{ transform: translateX(-50%) scale(1.04);   opacity: 1; }
-  100%{ transform: translateX(-50%) scale(1);     opacity: 0.95; }
+  0%{ transform: translateX(-50%) scale(1);        opacity: 0.95; }
+  50%{ transform: translateX(-50%) scale(1.04);    opacity: 1; }
+  100%{ transform: translateX(-50%) scale(1);      opacity: 0.95; }
 }
 
-/* ===== ボス会話（戦う前） ===== */
-.boss-talk{
-  position: fixed;
-  inset: 0;
-  display: none;
-  z-index: 10001;
-  background: rgba(0,0,0,0.78);
+/* =========================
+   ボス会話 / 結果：暗幕（最前面）
+========================= */
+
+/* 暗幕は共通で最前面固定 */
+.boss-talk,
+.boss-overlay{
+  position: fixed !important;
+  inset: 0 !important;
+  display: none;                 /* JSが display を切替 */
+  background: rgba(0,0,0,0.85) !important;
 }
+
+/* gate-modal(10000)より確実に上にする */
+.boss-talk{   z-index: 30000 !important; }
+.boss-overlay{z-index: 30001 !important; }
+
+/* JSが display:block を入れる方式に確実対応 */
+.boss-talk[style*="display: block"],
+.boss-overlay[style*="display: block"]{
+  display: block !important;
+}
+
+/* もし将来 class 方式にしても対応できるように */
+.boss-talk.is-open,
+.boss-overlay.is-open{
+  display: block !important;
+}
+
+/* =========================
+   会話パネル
+========================= */
 .boss-talk-panel{
   position: absolute;
   left: 50%;
@@ -33,7 +59,11 @@ html.is-night .boss-gate{
   color: #fff;
   font-family: system-ui, sans-serif;
 }
-.boss-talk-title{ font-size: 14px; margin-bottom: 8px; }
+
+.boss-talk-title{
+  font-size: 14px;
+  margin-bottom: 8px;
+}
 .boss-talk-text{
   font-size: 14px;
   line-height: 1.6;
@@ -53,16 +83,13 @@ html.is-night .boss-gate{
   color: #fff;
   cursor: pointer;
 }
-.boss-talk-buttons button:active{ transform: translateY(1px); }
-
-/* ===== バトル結果 ===== */
-.boss-overlay{
-  position: fixed;
-  inset: 0;
-  display: none;
-  z-index: 9999;
-  background: rgba(0,0,0,0.78);
+.boss-talk-buttons button:active{
+  transform: translateY(1px);
 }
+
+/* =========================
+   結果パネル
+========================= */
 .boss-panel{
   position: absolute;
   left: 50%;
@@ -76,6 +103,7 @@ html.is-night .boss-gate{
   text-align: center;
   font-family: system-ui, sans-serif;
 }
+
 .boss-head{ font-size: 13px; opacity: 0.9; margin-bottom: 8px; }
 .boss-name{ font-size: 16px; margin-bottom: 10px; }
 
@@ -88,11 +116,14 @@ html.is-night .boss-gate{
 }
 .boss-cardimg{
   width: 100%;
+  height: auto;
   display: block;
   image-rendering: pixelated;
 }
+
 .boss-result{ font-size: 28px; letter-spacing: 2px; margin-top: 6px; }
 .boss-score{ margin-top: 4px; font-size: 22px; }
+
 .boss-comment{
   margin-top: 8px;
   font-size: 14px;
@@ -100,7 +131,12 @@ html.is-night .boss-gate{
   min-height: 2.8em;
   opacity: 0.95;
 }
-.boss-footer{ margin-top: 10px; font-size: 12px; opacity: 0.75; }
+.boss-footer{
+  margin-top: 10px;
+  font-size: 12px;
+  opacity: 0.75;
+  line-height: 1.4;
+}
 
 .boss-buttons{
   display: flex;
@@ -115,6 +151,9 @@ html.is-night .boss-gate{
   color: #fff;
   cursor: pointer;
 }
+.boss-buttons button:active{
+  transform: translateY(1px);
+}
 
 /* 激レア：虹枠 */
 .boss-panel.rainbow{
@@ -123,25 +162,4 @@ html.is-night .boss-gate{
     linear-gradient(#000, #000) padding-box,
     linear-gradient(90deg, #ff3, #f3f, #3ff, #3f3, #ff3) border-box;
   border: 3px solid transparent;
-}
-/* ===== 最前面に固定（祭壇より上） ===== */
-.boss-talk{
-  z-index: 20000 !important;
-}
-.boss-overlay{
-  z-index: 20001 !important;
-}
-
-/* ===== PCでも確実に暗幕を出す（最強固定） ===== */
-.boss-talk,
-.boss-overlay{
-  position: fixed !important;
-  inset: 0 !important;
-  background: rgba(0,0,0,0.85) !important;
-}
-
-/* 表示時に確実に出す（JSがdisplay:blockでもgridでもOK） */
-.boss-talk[style*="display: block"],
-.boss-overlay[style*="display: block"]{
-  display: block !important;
 }
