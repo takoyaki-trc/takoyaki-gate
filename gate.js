@@ -130,8 +130,9 @@
     if (mDesc){
       if (dest.isCraft){
         // ★ここ：モーダルを開いた瞬間の取得日時を表示
-        mDesc.textContent =
-          `今だけ5分間のレア祭壇です。\n取得日時：${jstStampHM()}`;
+       mDesc.textContent =
+  `今だけ5分間のレア祭壇です。\n\n取得日時：${time}`;
+
       }else{
         mDesc.textContent = "たこ焼きページへ移動しますか？";
       }
