@@ -124,4 +124,11 @@ html.is-night .boss-gate{
     linear-gradient(90deg, #ff3, #f3f, #3ff, #3f3, #ff3) border-box;
   border: 3px solid transparent;
 }
+/* ===== 最前面に固定（祭壇より上） ===== */
+.boss-talk{
+  z-index: 20000 !important;
+}
+.boss-overlay{
+  z-index: 20001 !important;
+}
 
