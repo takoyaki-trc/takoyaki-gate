@@ -1,11 +1,3 @@
-#gateModalGo {
-  display: none;
-}
-
-
-
-
-
 /* モーダル写真がはみ出すのを防ぐ */
 .gate-modal__photo{
   width: 100%;
