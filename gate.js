@@ -17,7 +17,7 @@
     name: "🔥 職人の祭壇 🔥",
     url: "https://takoyakinana.1net.jp/",
     icon: "https://ul.h3z.jp/4S5Luahq.png",
-    photo: "https://ul.h3z.jp/Cervm9Sn.png"
+    photo: "https://ul.h3z.jp/i7T64HBV.png"
   };
 
   // ★テスト中だけ true（本番は必ず false）
