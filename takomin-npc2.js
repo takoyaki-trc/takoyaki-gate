@@ -62,79 +62,85 @@
 
 
   function pick(arr){
-    return arr[Math.floor(Math.random() * arr.length)];
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+let sayTimer = null;
+
+function boot(){
+  const imgEl  = document.getElementById("takominImg");
+  const linkEl = document.getElementById("takominLink");
+  const lineEl = document.getElementById("takominLine");
+  const textEl = document.querySelector(".takomin-text");
+
+  // 必須DOMがないページでは何もしない
+  if (!imgEl || !linkEl || !lineEl || !textEl) return;
+
+  // ★黒バー（.takomin-text）は固定、文字（#takominLine）だけフェード
+  function animateSwap(nextText){
+    // 文字だけフェードアウト
+    lineEl.classList.remove("fade-in");
+    lineEl.classList.add("fade-out");
+
+    setTimeout(() => {
+      // テキスト更新
+      lineEl.textContent = nextText;
+
+      // フェードインを「付け直し」て確実に再発火
+      lineEl.classList.remove("fade-out");
+      lineEl.classList.remove("fade-in");
+      void lineEl.offsetWidth; // reflow
+      lineEl.classList.add("fade-in");
+    }, 200);
   }
 
-  let sayTimer = null;
+  function startTalking(npc){
+    if (sayTimer) clearTimeout(sayTimer);
 
-  function boot(){
-    const imgEl  = document.getElementById("takominImg");
-    const linkEl = document.getElementById("takominLink");
-    const lineEl = document.getElementById("takominLine");
-    const textEl = document.querySelector(".takomin-text");
+    // 初回（即表示＋フェードイン確実）※文字だけ
+    lineEl.classList.remove("fade-out");
+    lineEl.classList.remove("fade-in");
+    lineEl.textContent = pick(npc.lines);
+    void lineEl.offsetWidth;
+    lineEl.classList.add("fade-in");
 
-    if (!imgEl || !linkEl || !lineEl || !textEl) return;
-
-    function animateSwap(nextText){
-      textEl.classList.remove("fade-in");
-      textEl.classList.add("fade-out");
-
-      setTimeout(() => {
-        lineEl.textContent = nextText;
-
-        textEl.classList.remove("fade-out");
-        textEl.classList.remove("fade-in");
-        void textEl.offsetWidth; // reflow
-        textEl.classList.add("fade-in");
-      }, 200);
-    }
-
-    function startTalking(npc){
-      if (sayTimer) clearTimeout(sayTimer);
-
-      textEl.classList.remove("fade-out");
-      textEl.classList.remove("fade-in");
-      lineEl.textContent = pick(npc.lines);
-      void textEl.offsetWidth;
-      textEl.classList.add("fade-in");
-
-      function sayOnce(){
-        animateSwap(pick(npc.lines));
-        sayTimer = setTimeout(
-          sayOnce,
-          Math.floor(Math.random() * (SAY_MAX - SAY_MIN) + SAY_MIN)
-        );
-      }
-
+    function sayOnce(){
+      animateSwap(pick(npc.lines));
       sayTimer = setTimeout(
         sayOnce,
         Math.floor(Math.random() * (SAY_MAX - SAY_MIN) + SAY_MIN)
       );
     }
 
-    function renderRandomNPC(){
-      const npc = pick(NPC_LIST);
+    sayTimer = setTimeout(
+      sayOnce,
+      Math.floor(Math.random() * (SAY_MAX - SAY_MIN) + SAY_MIN)
+    );
+  }
 
-      imgEl.src = npc.img;
-      imgEl.alt = "タコ民";
+  function renderRandomNPC(){
+    const npc = pick(NPC_LIST);
 
-      if (npc.link){
-        linkEl.href = npc.link;
-        linkEl.style.pointerEvents = "auto";
-      } else {
-        linkEl.removeAttribute("href");
-        linkEl.style.pointerEvents = "none";
-      }
+    imgEl.src = npc.img;
+    imgEl.alt = "タコ民";
 
-      startTalking(npc);
+    if (npc.link){
+      linkEl.href = npc.link;
+      linkEl.style.pointerEvents = "auto";
+    } else {
+      linkEl.removeAttribute("href");
+      linkEl.style.pointerEvents = "none";
     }
 
-    renderRandomNPC();
+    startTalking(npc);
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot, { once:true });
-  } else {
-    boot();
-  }
+  renderRandomNPC();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", boot, { once:true });
+} else {
+  boot();
+}
 })();
