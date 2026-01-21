@@ -1,28 +1,29 @@
+<script>
 (() => {
   /* =========================
-     1日1回 宝箱ガチャ + アルバム（localStorage）
-     - サーバー不要
-     - 端末ごとに保存
+     ✅ 1日1回 宝箱ガチャ + 端末アルバム（localStorage）
+     ✅ アルバム入口：タコ民NPC
   ========================= */
 
-  // ✅ 50種のカード（ここだけ差し替え）
-  // id: 一意 / name: 表示名 / img: カード画像URL
+  // =========================
+  // ✅ 50枚カードをここに入れる
+  // id: 一意 / name: 表示名 / img: 画像URL
+  // =========================
   const CARDS = [
     // 例：
-    // { id:"TN-001", name:"焼かれた伝説 001", img:"https://....png" },
-    // ...
+    // { id:"TN-001", name:"焼かれた伝説 001", img:"https://ul.h3z.jp/xxxx.png" },
   ];
 
-  // まだ50枚入れてない場合でも動く（ただし空だとエラーにする）
   if (!Array.isArray(CARDS) || CARDS.length === 0) {
-    console.warn("CARDS が空です。カード配列を入れてください。");
+    console.warn("CARDS が空です。カード50枚を入れてください。");
     return;
   }
 
   // ✅ キー名（プロジェクト用に固定）
   const KEY_PREFIX = "takoyaki_chest_v1";
+
+  // ✅ 今日キー（端末のローカル日付）
   const keyToday = () => {
-    // 端末のローカル日付でOK（東京運用なら、端末も日本ならほぼ一致）
     const d = new Date();
     const y = d.getFullYear();
     const m = String(d.getMonth()+1).padStart(2,"0");
@@ -30,13 +31,12 @@
     return `${y}-${m}-${day}`;
   };
 
-  const KEY_CLAIMED = () => `${KEY_PREFIX}_claimed_${keyToday()}`;     // 今日引いたか
-  const KEY_TODAY_CARD = () => `${KEY_PREFIX}_todaycard_${keyToday()}`; // 今日の結果（固定）
-  const KEY_ALBUM = `${KEY_PREFIX}_album`;                              // これまでの履歴
+  const KEY_CLAIMED    = () => `${KEY_PREFIX}_claimed_${keyToday()}`;      // 今日引いたか
+  const KEY_TODAY_CARD = () => `${KEY_PREFIX}_todaycard_${keyToday()}`;    // 今日のカード（固定）
+  const KEY_ALBUM      = `${KEY_PREFIX}_album`;                             // これまでの履歴
 
   // ✅ 要素
   const chestBtn   = document.getElementById("chestBtn");
-  const albumBtn   = document.getElementById("albumBtn");
   const chestModal = document.getElementById("chestModal");
   const albumModal = document.getElementById("albumModal");
 
@@ -48,15 +48,20 @@
   const chestCardMeta = document.getElementById("chestCardMeta");
   const goAlbum       = document.getElementById("goAlbum");
 
+  const albumNpc = document.getElementById("albumNpc");
+  const albumNpcBalloon = document.getElementById("albumNpcBalloon");
+
   const albumGrid = document.getElementById("albumGrid");
   const albumSub  = document.getElementById("albumSub");
+  const albumClear= document.getElementById("albumClear");
 
-  if (!chestBtn || !albumBtn || !chestModal || !albumModal) return;
+  if (!chestBtn || !chestModal || !albumModal || !albumNpc) return;
 
-  // ✅ ユーティリティ
+  // ✅ モーダル操作
   const openModal = (el) => { el.classList.add("is-open"); el.setAttribute("aria-hidden","false"); };
   const closeModal = (el) => { el.classList.remove("is-open"); el.setAttribute("aria-hidden","true"); };
 
+  // ✅ アルバム読み書き
   const loadAlbum = () => {
     try{
       const raw = localStorage.getItem(KEY_ALBUM);
@@ -68,41 +73,49 @@
   };
   const saveAlbum = (arr) => localStorage.setItem(KEY_ALBUM, JSON.stringify(arr));
 
-  const pickRandomCard = () => {
-    const idx = Math.floor(Math.random() * CARDS.length);
-    return CARDS[idx];
-  };
+  // ✅ 乱数1枚
+  const pickRandomCard = () => CARDS[Math.floor(Math.random() * CARDS.length)];
 
-  const renderResult = (card, whenLabel) => {
-    chestCardImg.src = card.img;
-    chestCardImg.alt = card.name;
-    chestCardName.textContent = `${card.name}`;
-    chestCardMeta.textContent = `${whenLabel} / ${card.id}`;
-    openModal(chestModal);
-  };
+  // ✅ 今日引いた？
+  const claimed = () => localStorage.getItem(KEY_CLAIMED()) === "1";
 
+  // ✅ 宝箱表示制御（引いたら消す）
   const setChestVisible = (visible) => {
     chestBtn.style.display = visible ? "block" : "none";
   };
 
-  // ✅ 今日すでに引いたか？
-  const claimed = () => localStorage.getItem(KEY_CLAIMED()) === "1";
+  // ✅ 結果表示
+  const renderResult = (card, label) => {
+    chestCardImg.src = card.img;
+    chestCardImg.alt = card.name;
+    chestCardName.textContent = card.name;
+    chestCardMeta.textContent = `${label} / ${card.id}`;
+    openModal(chestModal);
+  };
 
-  // ✅ 初期表示：引いてたら宝箱消す
+  // ✅ 初期：引いてたら宝箱消す
   setChestVisible(!claimed());
 
-  // ✅ 宝箱クリック
+  // ✅ タコ民吹き出し：所持数を反映（ついで）
+  const refreshNpcBalloon = () => {
+    const album = loadAlbum();
+    const n = album.length;
+    if (albumNpcBalloon){
+      albumNpcBalloon.textContent = n === 0
+        ? "アルバム見る？\n（まだ0枚）"
+        : `アルバム見る？\n（${n}枚）`;
+    }
+  };
+  refreshNpcBalloon();
+
+  // ✅ 宝箱クリック（1日1回）
   chestBtn.addEventListener("click", () => {
-    // すでに引いてたら消す（保険）
+    // すでに引いてたら宝箱は消す（保険）
     if (claimed()) {
       setChestVisible(false);
-      // 今日の結果があるなら見せる（任意）
       const raw = localStorage.getItem(KEY_TODAY_CARD());
       if (raw) {
-        try {
-          const card = JSON.parse(raw);
-          renderResult(card, "今日はもう開けた（結果）");
-        } catch(e){}
+        try { renderResult(JSON.parse(raw), "今日はもう開けた（結果）"); } catch(e){}
       }
       return;
     }
@@ -113,7 +126,7 @@
     localStorage.setItem(KEY_CLAIMED(), "1");
     localStorage.setItem(KEY_TODAY_CARD(), JSON.stringify(card));
 
-    // アルバムに追加（同じカードでも日付違いで追加）
+    // アルバムに追加（引いた順）
     const album = loadAlbum();
     album.unshift({
       date: keyToday(),
@@ -126,6 +139,9 @@
     // 宝箱を消す
     setChestVisible(false);
 
+    // 吹き出し更新
+    refreshNpcBalloon();
+
     // 結果表示
     renderResult(card, "今日の戦利品");
   });
@@ -136,7 +152,7 @@
     if (e.target === chestModal) closeModal(chestModal);
   });
 
-  // ✅ アルバム開く
+  // ✅ アルバム表示
   const openAlbum = () => {
     const album = loadAlbum();
     albumSub.textContent = `所持数：${album.length}（この端末のみ）`;
@@ -155,7 +171,7 @@
         <img src="${it.img}" alt="${it.name}">
         <div class="t">${it.date}<br>${it.id}</div>
       `;
-      // タップで拡大表示として結果モーダルを流用
+      // タップで拡大（宝箱結果モーダルを流用）
       div.addEventListener("click", () => {
         renderResult({id: it.id, name: it.name, img: it.img}, `入手日：${it.date}`);
       });
@@ -165,14 +181,29 @@
     openModal(albumModal);
   };
 
-  albumBtn.addEventListener("click", openAlbum);
+  // ✅ タコ民をタップ → アルバムを開く
+  albumNpc.addEventListener("click", openAlbum);
+
+  // ✅ 「アルバムで見る」ボタン（結果画面から）
   goAlbum.addEventListener("click", () => {
     closeModal(chestModal);
     openAlbum();
   });
 
+  // ✅ アルバム閉じる
   albumClose.addEventListener("click", () => closeModal(albumModal));
   albumModal.addEventListener("click", (e) => {
     if (e.target === albumModal) closeModal(albumModal);
   });
+
+  // ✅ アルバム初期化（任意）
+  albumClear.addEventListener("click", () => {
+    if (!confirm("この端末のアルバムを初期化します。よろしいですか？")) return;
+    localStorage.removeItem(KEY_ALBUM);
+    refreshNpcBalloon();
+    // 表示更新
+    albumGrid.innerHTML = `<div style="grid-column:1/-1;opacity:.85;">初期化しました。宝箱を開けよう！</div>`;
+    albumSub.textContent = `所持数：0（この端末のみ）`;
+  });
 })();
+</script>
