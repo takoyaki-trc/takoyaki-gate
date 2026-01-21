@@ -1,0 +1,263 @@
+/* ===== マップ全体 ===== */
+.map-wrap{
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.map-img{
+  width: 100%;
+  height: auto;
+  display: block;
+  image-rendering: pixelated;
+}
+
+/* ===== 佐俣ニキティGIF ===== */
+.map-gif{
+  position: absolute;
+  top: 32.9%;
+  left: 50.2%;
+  transform: translateX(-50%);
+  width: 24%;
+  image-rendering: pixelated;
+  pointer-events: none;
+  z-index: 10;
+}
+
+
+/* ===== 北海道焼き元の湯GIF ===== */
+.map2-gif{
+  position: absolute;
+  top: 71.5%;
+  left: 51%;
+  transform: translateX(-50%);
+  width: 30%;
+  image-rendering: pixelated;
+  pointer-events: none;
+  z-index: 10;
+}
+
+
+
+
+
+/* ホットスポット共通 */
+.hotspot{
+  position: absolute;
+  display: block;
+  z-index: 50;
+  background: rgba(0,0,0,0.0); /* ←調整中だけON */
+}
+
+
+
+
+
+/* 最新のお知らせ */
+.hs-osirase{
+   top: 1.3%;
+  left: 6%;
+  width: 27.3%;
+  height: 5%;
+}
+
+/* たこ焼きトレカの世界 */
+.hs-story{
+  top: 0.8%;
+  left: 67%;
+  width: 31%;
+  height: 5.5%;
+}
+
+
+/* よくある質問 */
+.hs-situmon{
+   top: 7.8%;
+  left: 5%;
+   width: 24%;
+  height: 6.6%;
+}
+
+
+/* いま遊べるイベント */
+.hs-ivent{
+  top: 8.8%;
+  left: 69%;
+  width: 30%;
+  height: 5.6%;
+}
+
+
+
+/* ビンゴの泉 */
+.hs-bingo{
+  top: 13%;
+  left: 38%;
+  width: 24%;
+  height:5.8%;
+}
+
+
+
+/* たこぴのSNS */
+.hs-sns{
+  top: 16.43%;
+  left: 74.3%;
+  width: 23%;
+  height: 6.65%;
+}
+
+/* カードを買う（左中央） */
+.hs-kau{
+  top: 16.5%;
+  left: 5.2%;
+  width: 26.7%;
+  height: 6.63%;
+}
+
+/* アイテムショップ */
+.hs-item{
+  top: 25.1%;
+  left: 5.1%;
+  width: 29.4%;
+  height: 7%;
+}
+
+
+/* 達成の記録 */
+.hs-kiroku{
+ top: 24%;
+  left: 64.7%;
+  width: 25%;
+  height: 7%;
+}
+
+/* メディア掲載 */
+.hs-medhia{
+top: 34.2%;
+  left: 3.7%;
+  width: 28.5%;
+  height: 6%;
+}
+
+
+/* コラボカードを見る */
+.hs-korabo{
+top: 32.6%;
+  left: 35.7%;
+  width: 29%;
+  height: 7.9%;
+}
+
+/* カード図鑑 */
+.hs-zukan1{
+ top: 33.2%;
+  left: 70.5%;
+  width: 25.5%;
+  height: 6.8%;
+}
+
+
+/*旅路の塔 */
+.hs-tou{
+top: 53%;
+  left: 36%;
+  width: 30%;
+  height: 7%;
+}
+
+/* 群馬GHOST */
+.hs-ghost{
+ top: 67.5%;
+  left: 5%;
+  width: 24%;
+  height: 6.66%;
+}
+
+/* 宮城YOUSHA */
+.hs-yousha{
+top: 60%;
+  left: 4%;
+  width: 26.5%;
+  height: 6.5%;
+}
+
+
+/* 群馬BIGMANS */
+.hs-bigmans{
+top: 53%;
+  left: 2%;
+  width: 29%;
+  height: 6%;
+}
+
+/* 東京DOLLis */
+.hs-dollis{
+ top: 52.8%;
+  left: 74%;
+  width: 23.3%;
+  height: 6.5%;
+}
+
+
+/*群馬2bit */
+.hs-2bit{
+top: 75%;
+  left: 5%;
+  width: 23.5%;
+  height: 6.5%;
+}
+
+
+
+/* 東京華矢式 */
+.hs-hanayashiki{
+ top: 60%;
+  left: 75%;
+  width: 23%;
+  height: 6.5%;
+}
+
+/* 福岡KBC */
+.hs-kbc{
+top: 42%;
+  left: 75.5%;
+  width: 23%;
+  height: 7%;
+}
+
+
+/* 東京MARS */
+.hs-mars{
+top: 67.5%;
+  left: 75%;
+  width: 23%;
+  height: 6.7%;
+}
+
+/* 東京たこ焼き刀鍛冶 */
+.hs-katanakazi{
+ top: 41.5%;
+  left: 3.2%;
+  width: 24.2%;
+  height: 7.5%;
+}
+
+
+/*北海道たこ焼き菜々 */
+.hs-nana{
+top: 71.6%;
+  left: 34.7%;
+  width: 32%;
+  height: 8.5%;
+}
+
+
+
+
+
+
+
+
+
