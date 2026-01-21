@@ -117,3 +117,36 @@
   opacity: 1;
   transform: translateY(0);
 }
+
+/* =========================
+   ✅ 祭壇：反応（タップ）を強くする
+   - ボタン（当たり判定）だけ前へ
+   - 画像は後ろへ → 見た目は下のまま
+   ========================= */
+
+/* 祭壇ボタン：タップ判定を確実に拾うため前へ */
+.map-wrap .spot--gate{
+  z-index: 80 !important;     /* タコ民(60)より上でタップを確実に拾う */
+  isolation: isolate;         /* 子の z-index:-1 を安全にする */
+}
+
+/* 祭壇の画像：見た目だけ後ろへ（ボタンの当たり判定は前のまま） */
+.map-wrap .spot--gate .spot__base,
+.map-wrap .spot--gate .spot__icon{
+  position: relative;
+  z-index: -1;                /* ← ここがポイント：見た目だけ奥へ */
+  pointer-events: none;       /* 画像がクリックを邪魔しない */
+}
+
+/* ✅ タップしやすい“当たり判定”を広げる（見た目は変えない） */
+.map-wrap .spot--gate::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform: translate(-50%, -50%);
+  width: 140%;                /* ←当たり判定を広げる */
+  height: 140%;
+  background: transparent;
+}
+
