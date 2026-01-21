@@ -13,6 +13,14 @@
   touch-action: manipulation;
 }
 
+/* 祭壇だけ下へ */
+.map-wrap .spot--gate{
+  z-index: 10 !important;
+  top: 68%;
+  left: 52%;
+}
+
+/* 画像 */
 .map-wrap .spot__base,
 .map-wrap .spot__icon{
   width: 100%;
@@ -21,11 +29,7 @@
   image-rendering: pixelated;
 }
 
-/* ここを「親の基準」にしたいので、spot自体を基準化 */
-.map-wrap .spot{ position:absolute; }
-.map-wrap .spot--gate{ top: 68%; left: 52%; }
-
-/* アイコンを土台の上に重ねる */
+/* アイコンを土台の上に */
 .map-wrap .spot__icon{
   position: absolute;
   left: 50%;
@@ -35,6 +39,7 @@
   pointer-events: none;
   filter: drop-shadow(0 2px 0 rgba(0,0,0,.6));
 }
+
 
 /* ===== ワンクッション（モーダル） ===== */
 .gate-modal{
