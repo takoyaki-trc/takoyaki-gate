@@ -1,3 +1,5 @@
+
+<script>
 (() => {
   /* =========================
     gate.js（完全版）
@@ -9,7 +11,8 @@
   const isNight = () => document.documentElement.classList.contains("is-night");
 
   const gate = document.querySelector(".spot--gate");
-  if(!gate) return;
+  const gateHit = document.querySelector(".gate-hit");
+  if(!gate || !gateHit) return;
 
   const baseImg = gate.querySelector(".spot__base");
   const iconImg = gate.querySelector(".spot__icon");
@@ -24,7 +27,6 @@
 
   /* =========================
     ① 通常：12種類（1時間ごと、24hで2周）
-    ※ここをあなたの12種類にしてください
   ========================= */
   const DEST = [
     { name:"ソース", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/nqINjjMK.png",  photo:"https://ul.h3z.jp/w9q1XjEw.JPG" },
@@ -42,7 +44,7 @@
   ];
 
   /* =========================
-    ② 5分イベント：候補プール（好きに増やせる）
+    ② 5分イベント：候補プール
   ========================= */
   const EVENT_POOL = [
     { name:"5分限定①", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/Quyt1TAt.png", photo:"https://ul.h3z.jp/zqoEDppD.jpg" },
@@ -52,10 +54,6 @@
     { name:"5分限定⑤", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/lLEWj0Pu.png", photo:"https://ul.h3z.jp/qKBz4tee.jpg" }
   ];
 
-  /* =========================
-    日付キー（端末日付）
-    ※東京固定にしたい場合は言って（差し替え版出す）
-  ========================= */
   function todayKey(){
     const d = new Date();
     const y = d.getFullYear();
@@ -64,7 +62,6 @@
     return `${y}-${m}-${day}`;
   }
 
-  /* ====== seed付き乱数（同じ日なら同じ結果） ====== */
   function mulberry32(seed){
     return function(){
       let t = seed += 0x6D2B79F5;
@@ -90,7 +87,6 @@
     return copy.slice(0, Math.min(n, copy.length));
   }
 
-  /* ====== 5分枠を生成（1日=288スロット） ====== */
   function generateEventWindows(rnd, count=5){
     const windows = [];
     const used = new Set();
@@ -137,14 +133,12 @@
     return null;
   }
 
-  /* ===== 通常：12種を1時間ごと ===== */
   function getHourlyDest(){
     const hour = new Date().getHours(); // 0..23
-    const idx = hour % DEST.length;     // 12なら2周
+    const idx = hour % DEST.length;
     return DEST[idx] || DEST[0];
   }
 
-  /* ===== 最終：今表示すべき1件（イベント優先） ===== */
   function getCurrentDest(){
     const e = getActiveEventItem();
     if(e) return { ...e, isEvent:true };
@@ -165,12 +159,13 @@
 
   function openModal(dest){
     if(!modal) return;
+    const d = dest || gate._dest || getCurrentDest();
 
     if(mPhoto){
       mPhoto.classList.remove("is-ready");
 
       const fallback = "https://ul.h3z.jp/zqoEDppD.jpg";
-      const nextUrl = dest.photo || fallback;
+      const nextUrl = d.photo || fallback;
 
       mPhoto.onload = () => mPhoto.classList.add("is-ready");
       mPhoto.onerror = () => {
@@ -179,15 +174,15 @@
       };
 
       mPhoto.src = nextUrl;
-      mPhoto.alt = dest.name ? `たこ焼き写真：${dest.name}` : "たこ焼き写真";
+      mPhoto.alt = d.name ? `たこ焼き写真：${d.name}` : "たこ焼き写真";
     }
 
     if(mTitle) mTitle.textContent = "たこ焼きゲート";
     if(mDesc){
-      const label = dest.isEvent ? "【5分イベント発生中】" : "この時間の行き先";
-      mDesc.textContent = `${label}：${dest.name}\n行きますか？`;
+      const label = d.isEvent ? "【5分イベント発生中】" : "この時間の行き先";
+      mDesc.textContent = `${label}：${d.name}\n行きますか？`;
     }
-    if(btnGo) btnGo.href = dest.url || "#";
+    if(btnGo) btnGo.href = d.url || "#";
 
     modal.classList.add("is-open");
     modal.setAttribute("aria-hidden", "false");
@@ -199,7 +194,7 @@
     modal.setAttribute("aria-hidden", "true");
   }
 
-  // 閉じる操作
+  // 閉じる
   if(btnCancel) btnCancel.addEventListener("click", closeModal);
   if(modal) modal.addEventListener("click", (e) => { if(e.target === modal) closeModal(); });
   document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeModal(); });
@@ -218,12 +213,14 @@
     }
   }).observe(document.documentElement, { attributes: true });
 
-  // ✅ 30秒ごとに更新（5分イベント追従）
-  setInterval(applyIconAndDest, 30 * 1000);
-
-  // クリック：モーダル
-  gate.addEventListener("click", () => {
-    const dest = gate._dest || getCurrentDest();
-    openModal(dest);
+  // ✅ タップは gate-hit だけに集約（ここが重要）
+  gateHit.addEventListener("click", (e) => {
+    e.preventDefault();
+    openModal(gate._dest || getCurrentDest());
   });
+
+  // 30秒ごと更新（5分イベント追従）
+  setInterval(applyIconAndDest, 30 * 1000);
 })();
+</script>
+
