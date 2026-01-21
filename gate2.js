@@ -27,31 +27,29 @@
     ※ここをあなたの12種類にしてください
   ========================= */
   const DEST = [
-    { name:"すっぴん",     url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/G9HOojAP.png",  photo:"https://ul.h3z.jp/zqoEDppD.jpg" },
-    { name:"ねぎ味噌",     url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/8ipISSBp.png",  photo:"https://ul.h3z.jp/hqi2ldka.jpg" },
-    { name:"めんたいマヨ", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/IShYv1or.png",  photo:"https://ul.h3z.jp/uJT6MP7r.jpg" },
-    { name:"夜の店ページ", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/UHcLPRSi.png",  photo:"https://ul.h3z.jp/zqoEDppD.jpg" },
-
-    // ↓残り8種類を入れて12にする（仮）
-    { name:"枠05", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/G9HOojAP.png", photo:"https://ul.h3z.jp/zqoEDppD.jpg" },
-    { name:"枠06", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/8ipISSBp.png", photo:"https://ul.h3z.jp/hqi2ldka.jpg" },
-    { name:"枠07", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/IShYv1or.png", photo:"https://ul.h3z.jp/uJT6MP7r.jpg" },
-    { name:"枠08", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/UHcLPRSi.png", photo:"https://ul.h3z.jp/zqoEDppD.jpg" },
-    { name:"枠09", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/G9HOojAP.png", photo:"https://ul.h3z.jp/zqoEDppD.jpg" },
-    { name:"枠10", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/8ipISSBp.png", photo:"https://ul.h3z.jp/hqi2ldka.jpg" },
-    { name:"枠11", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/IShYv1or.png", photo:"https://ul.h3z.jp/uJT6MP7r.jpg" },
-    { name:"枠12", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/lLEWj0Pu.png", photo:"https://ul.h3z.jp/hqi2ldka.jpg" }
+    { name:"ソース", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/nqINjjMK.png",  photo:"https://ul.h3z.jp/w9q1XjEw.JPG" },
+    { name:"辛口ソース", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/YLRvkVGN.png",  photo:"https://ul.h3z.jp/9hMHvKKj.JPG" },
+    { name:"牡蠣だし醤油", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/MVSCZ25p.png",  photo:"https://ul.h3z.jp/T0CxTKSx.jpg" },
+    { name:"塩こしょう", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/SQV2q3jp.png",  photo:"https://ul.h3z.jp/NBucOtLN.jpg" },
+    { name:"すっぴん", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/YMqM1RHO.png", photo:"https://ul.h3z.jp/dS7jTJHG.jpg" },
+    { name:"塩マヨペッパー", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/zQQykyJj.png", photo:"https://ul.h3z.jp/1cp7o9Wj.JPG" },
+    { name:"ぶっかけ揚げ玉からしマヨ", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/IPCsqito.png", photo:"https://ul.h3z.jp/bGPE3EF0.JPG" },
+    { name:"チーズソースマヨ", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/90Ev9Ne1.png", photo:"https://ul.h3z.jp/KV88ErO9.JPG" },
+    { name:"めんたいマヨ", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/67VI4JDC.png", photo:"https://ul.h3z.jp/KmKaonqx.JPG" },
+    { name:"ねぎ味噌", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/s8niXw6T.png", photo:"https://ul.h3z.jp/hZFTeh2G.JPG" },
+    { name:"てりたま", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/2R5Y1u17.png", photo:"https://ul.h3z.jp/mUdLeIXQ.jpg" },
+    { name:"イカさま焼き", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/u3nsTFYy.png", photo:"https://ul.h3z.jp/XhgVmXyG.JPG" }
   ];
 
   /* =========================
     ② 5分イベント：候補プール（好きに増やせる）
   ========================= */
   const EVENT_POOL = [
-    { name:"5分限定①", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/G9HOojAP.png", photo:"https://ul.h3z.jp/zqoEDppD.jpg" },
-    { name:"5分限定②", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/8ipISSBp.png", photo:"https://ul.h3z.jp/hqi2ldka.jpg" },
-    { name:"5分限定③", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/IShYv1or.png", photo:"https://ul.h3z.jp/uJT6MP7r.jpg" },
-    { name:"5分限定④", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/UHcLPRSi.png", photo:"https://ul.h3z.jp/zqoEDppD.jpg" },
-    { name:"5分限定⑤", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/lLEWj0Pu.png", photo:"https://ul.h3z.jp/hqi2ldka.jpg" }
+    { name:"5分限定①", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/Quyt1TAt.png", photo:"https://ul.h3z.jp/zqoEDppD.jpg" },
+    { name:"5分限定②", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/8ipISSBp.png", photo:"https://ul.h3z.jp/NpBmmHXa.jpg" },
+    { name:"5分限定③", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/IShYv1or.png", photo:"https://ul.h3z.jp/zF3JHtL2.png" },
+    { name:"5分限定④", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/UHcLPRSi.png", photo:"https://ul.h3z.jp/oHafyMzg.png" },
+    { name:"5分限定⑤", url:"https://takoyakinana.1net.jp/", icon:"https://ul.h3z.jp/lLEWj0Pu.png", photo:"https://ul.h3z.jp/qKBz4tee.jpg" }
   ];
 
   /* =========================
