@@ -156,3 +156,15 @@
   color:#000;
   border-color: transparent;
 }
+/* gate.css：位置ズレ防止（必ずこれが勝つ） */
+.map-wrap .spot.spot--gate{
+  top: 67% !important;
+  left: 52% !important;
+  transform: translate(-50%, -100%) !important;
+}
+
+.map-wrap .gate-hit{
+  top: 67% !important;
+  left: 52% !important;
+  transform: translate(-50%, -100%) !important;
+}
