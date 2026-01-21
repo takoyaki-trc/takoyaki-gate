@@ -73,3 +73,29 @@
 @media (max-width:480px){
   .takomin-text{ font-size:12px; }
 }
+
+
+/* =========================
+   ✅ チラつき対策（追記）
+   ========================= */
+
+/* 黒バーの高さを固定してレイアウト揺れを止める（超重要） */
+.takomin-text{
+  min-height: calc(1.6em * 2 + 12px);  /* 2行分 + paddingぶん（6px*2） */
+  /* もし3行出るなら 3 にする */
+  /* min-height: calc(1.6em * 3 + 12px); */
+}
+
+/* 文字だけフェードを“合成レイヤー化”してチラつき減らす */
+#takominLine{
+  will-change: opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* 黒バー自体も描画を安定させる（環境によって効く） */
+.takomin-text{
+  contain: paint;
+  transform: translateZ(0);
+}
+
