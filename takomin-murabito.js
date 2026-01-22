@@ -1,134 +1,159 @@
 /* =========================
-   idle-talk.js（放置で独り言）
-   前提：
-   - const TALK = { me1:{day,night,vanishLine}, ... } が定義済み
-   - タコ民ボタン: .takomin[data-id="me1"] のように data-id が TALK のキーと一致
-   - 吹き出し要素: .takomin-balloon が各タコ民内にある
-   - 夜判定: html.is-night
+   放置専用：特別セリフ集（性格バラバラ）
+   - 通常の TALK(day/night) とは完全に別
+========================= */
+window.IDLE_TALK = {
+  day: {
+    shy: [
+      "暇だ・・・",
+      "誰かタップして・・・",
+      "喋りたい・・・",
+      "ねぇ・・・聞いて・・・",
+      "ここ、ずっと立ってる・・・"
+    ],
+    friendly: [
+      "おーい！\n誰かいる？",
+      "ちょっとでいいから\n押してよ～",
+      "今なら\n空いてます！",
+      "暇すぎて\n景色見てた！"
+    ],
+    cynical: [
+      "はいはい、\n放置ですね。",
+      "また背景係に\n戻りました。",
+      "期待しない方が\n楽だよ。",
+      "……知ってた。"
+    ],
+    needy: [
+      "一回だけでいい。",
+      "押したら\nすぐ終わるから。",
+      "ここにいる意味、\nあるよね？",
+      "……まだ待ってる。"
+    ]
+  },
+
+  night: {
+    quiet: [
+      "……暇だ。",
+      "……喋りたい。",
+      "……夜、\n長い。",
+      "……声、\n届いてる？"
+    ],
+    needy: [
+      "……タップして。",
+      "……見てるなら\n触って。",
+      "……反応、\n欲しい。",
+      "……一人は\n嫌だ。"
+    ],
+    creepy: [
+      "……放置、\n好きだね。",
+      "……見られてるのに\n触られない。",
+      "……声が\n増えてきた。",
+      "……今、\n何人\n見てる？"
+    ],
+    resigned: [
+      "……どうせ\n来ない。",
+      "……朝まで\nこのまま。",
+      "……待つの、\n慣れた。",
+      "……それでも\n立ってる。"
+    ]
+  }
+};
+
+
+/* =========================
+   idle-talk.js（完全版）
+   - 放置時のみ発話
+   - 性格（人格）をランダムで切替
+   - 人格ごとに吹き出しの雰囲気が変わる
 ========================= */
 (() => {
   "use strict";
 
-  if (typeof TALK !== "object") return;
+  const TALK = window.TALK;
+  const IDLE_TALK = window.IDLE_TALK;
+  if (!TALK || !IDLE_TALK) return;
 
   /* ===== 設定 ===== */
-  const IDLE_MIN_MS = 90 * 1000;   // 最短：90秒で喋る（好みで変更）
-  const IDLE_MAX_MS = 180 * 1000;  // 最長：180秒で喋る（好みで変更）
-  const DISPLAY_MS  = 5200;        // 独り言の表示時間（ミリ秒）
-  const VANISH_RATE = 0.18;        // vanishLine を混ぜる確率（0〜1）
-  const NO_REPEAT_WINDOW = 3;      // 直近N回の同じキャラ連続回避
+  const IDLE_MIN = 90 * 1000;
+  const IDLE_MAX = 180 * 1000;
+  const DISPLAY_MS = 5200;
 
-  const isNight = () => document.documentElement.classList.contains("is-night");
+  const isNight = () =>
+    document.documentElement.classList.contains("is-night");
 
-  /* ===== 対象タコ民収集 ===== */
-  function getNpcNodes(){
-    // 例：<button class="takomin" data-id="me3">...<div class="takomin-balloon"></div></button>
-    return Array.from(document.querySelectorAll(".takomin[data-id]"))
-      .map(el => {
-        const id = el.getAttribute("data-id");
-        const balloon = el.querySelector(".takomin-balloon");
-        return { el, id, balloon };
-      })
-      .filter(x => x.id && x.balloon && TALK[x.id]);
-  }
-
-  /* ===== ランダム ===== */
-  function randInt(min, max){
+  function rand(min, max){
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
   function pick(arr){
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
-  /* ===== 文章選択 ===== */
-  function pickLine(talkObj){
-    const pool = isNight() ? (talkObj.night || []) : (talkObj.day || []);
-    const hasVanish = typeof talkObj.vanishLine === "string" && talkObj.vanishLine.trim().length;
-    const useVanish = isNight() && hasVanish && Math.random() < VANISH_RATE;
-
-    if (useVanish) return talkObj.vanishLine;
-    if (!pool.length) return hasVanish ? talkObj.vanishLine : "";
-    return pick(pool);
+  function getNpcs(){
+    return Array.from(document.querySelectorAll(".takomin[data-id]"))
+      .map(el => ({
+        el,
+        id: el.dataset.id,
+        balloon: el.querySelector(".takomin-balloon")
+      }))
+      .filter(n => n.balloon && TALK[n.id]);
   }
 
-  /* ===== 表示 ===== */
+  /* ===== 人格つきセリフを取得 ===== */
+  function pickIdleLine(){
+    const group = isNight() ? IDLE_TALK.night : IDLE_TALK.day;
+    const personalities = Object.keys(group);
+    const personality = pick(personalities);
+    const text = pick(group[personality]);
+    return { text, personality };
+  }
+
   let hideTimer = null;
-  function showBalloon(npc, text){
-    if (!npc || !npc.balloon || !text) return;
+  function showBalloon(npc, text, personality){
+    if (!npc || !text) return;
 
-    // 既存表示のリセット
+    const b = npc.balloon;
+
+    // 人格クラスを全リセット
+    b.className = "takomin-balloon";
+
+    // 人格クラス付与（←切替に気づく核心）
+    b.classList.add("idle-" + personality);
+
+    b.textContent = text;
+    b.classList.add("is-show");
+
     if (hideTimer) clearTimeout(hideTimer);
-
-    npc.balloon.textContent = text;
-
-    // もしCSSで開閉制御してるならクラス付与（無くてもOK）
-    npc.balloon.classList.add("is-show");
-
     hideTimer = setTimeout(() => {
-      npc.balloon.classList.remove("is-show");
-      // テキストを消したいなら下をON
-      // npc.balloon.textContent = "";
+      b.classList.remove("is-show");
     }, DISPLAY_MS);
   }
 
-  /* ===== キャラ選択（連続回避） ===== */
-  const recent = [];
-  function pickNpc(list){
-    if (!list.length) return null;
-
-    // recentに入ってないやつを優先
-    const candidates = list.filter(n => !recent.includes(n.id));
-    const npc = candidates.length ? pick(candidates) : pick(list);
-
-    recent.push(npc.id);
-    while (recent.length > NO_REPEAT_WINDOW) recent.shift();
-
-    return npc;
-  }
-
-  /* ===== 放置判定 ===== */
   let idleTimer = null;
-
-  function scheduleNext(){
+  function schedule(){
     if (idleTimer) clearTimeout(idleTimer);
-    const ms = randInt(IDLE_MIN_MS, IDLE_MAX_MS);
-    idleTimer = setTimeout(runIdleTalk, ms);
+    idleTimer = setTimeout(runIdle, rand(IDLE_MIN, IDLE_MAX));
   }
 
-  function resetIdle(){
-    scheduleNext();
+  function reset(){
+    schedule();
   }
 
-  function runIdleTalk(){
-    const list = getNpcNodes();
-    const npc = pickNpc(list);
-    if (!npc) return scheduleNext();
+  function runIdle(){
+    const npcs = getNpcs();
+    if (!npcs.length) return schedule();
 
-    const talk = TALK[npc.id];
-    const line = pickLine(talk);
-    showBalloon(npc, line);
+    const npc = pick(npcs);
+    const { text, personality } = pickIdleLine();
 
-    // 次も継続
-    scheduleNext();
+    showBalloon(npc, text, personality);
+    schedule();
   }
 
   /* ===== ユーザー操作でリセット ===== */
-  const events = ["pointerdown","click","keydown","scroll","touchstart","mousemove"];
-  let lastMoveAt = 0;
+  ["click","pointerdown","keydown","scroll","touchstart","mousemove"]
+    .forEach(ev =>
+      window.addEventListener(ev, reset, { passive:true })
+    );
 
-  function onAnyActivity(e){
-    // mousemove だけは連打を間引く（軽量化）
-    if (e.type === "mousemove"){
-      const now = Date.now();
-      if (now - lastMoveAt < 700) return;
-      lastMoveAt = now;
-    }
-    resetIdle();
-  }
-
-  events.forEach(ev => window.addEventListener(ev, onAnyActivity, { passive:true }));
-
-  /* ===== 初期スタート ===== */
-  scheduleNext();
-
+  schedule();
 })();
