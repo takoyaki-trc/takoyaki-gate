@@ -61,7 +61,7 @@ window.IDLE_TALK = {
 
 
 /* =========================
-   idle-talk.js（完全版）
+   idle-talk.js（完全版・早口調整）
    - 放置時のみ発話
    - 性格（人格）をランダムで切替
    - 人格ごとに吹き出しの雰囲気が変わる
@@ -73,10 +73,10 @@ window.IDLE_TALK = {
   const IDLE_TALK = window.IDLE_TALK;
   if (!TALK || !IDLE_TALK) return;
 
-  /* ===== 設定 ===== */
-  const IDLE_MIN = 90 * 1000;
-  const IDLE_MAX = 180 * 1000;
-  const DISPLAY_MS = 5200;
+  /* ===== 設定（★ここが早くなっている） ===== */
+  const IDLE_MIN = 20 * 1000;   // 最短 20秒
+  const IDLE_MAX = 45 * 1000;   // 最長 45秒
+  const DISPLAY_MS = 5200;      // 吹き出し表示時間
 
   const isNight = () =>
     document.documentElement.classList.contains("is-night");
@@ -101,10 +101,16 @@ window.IDLE_TALK = {
   /* ===== 人格つきセリフを取得 ===== */
   function pickIdleLine(){
     const group = isNight() ? IDLE_TALK.night : IDLE_TALK.day;
+    if (!group) return { text:"", personality:"" };
+
     const personalities = Object.keys(group);
+    if (!personalities.length) return { text:"", personality:"" };
+
     const personality = pick(personalities);
-    const text = pick(group[personality]);
-    return { text, personality };
+    const lines = group[personality] || [];
+    if (!lines.length) return { text:"", personality };
+
+    return { text: pick(lines), personality };
   }
 
   let hideTimer = null;
@@ -116,8 +122,8 @@ window.IDLE_TALK = {
     // 人格クラスを全リセット
     b.className = "takomin-balloon";
 
-    // 人格クラス付与（←切替に気づく核心）
-    b.classList.add("idle-" + personality);
+    // 人格クラス付与（人格切替が目で分かる）
+    if (personality) b.classList.add("idle-" + personality);
 
     b.textContent = text;
     b.classList.add("is-show");
@@ -155,5 +161,6 @@ window.IDLE_TALK = {
       window.addEventListener(ev, reset, { passive:true })
     );
 
+  // 初期スタート
   schedule();
 })();
