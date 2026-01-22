@@ -1,0 +1,19 @@
+/* 共通 */
+.takomin-balloon.is-show{
+  opacity: 1;
+  transition: opacity .25s ease;
+}
+
+/* 人格差分（昼） */
+.idle-shy { opacity: .9; }
+.idle-friendly { transform: translate(-50%, -14px); }
+.idle-cynical { filter: grayscale(.3); }
+.idle-needy { text-shadow: 0 0 2px rgba(0,0,0,.25); }
+
+/* 人格差分（夜） */
+html.is-night .idle-quiet { opacity: .85; }
+html.is-night .idle-creepy {
+  filter: brightness(.9);
+  text-shadow: 0 0 4px rgba(0,0,0,.6);
+}
+html.is-night .idle-resigned { opacity: .7; }
