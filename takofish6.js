@@ -1,810 +1,739 @@
+/* =========================================================
+   takofish.js（完成形・まるごと）
+   - Canvasゲーム
+   - たこ焼き複数漂う
+   - 糸を垂らして釣る（クリック/タップで投下→自動巻き上げ）
+   - 天敵：観光客（左右往復）※そのまま
+   - 天敵：イカ（ゆらゆら）
+   - 超高速天敵：削除
+   - 1分（60秒）
+   - 開始前にルールページ表示 → Startで開始
+   - 画像：GitHub + jsDelivr
+========================================================= */
+
 (() => {
-  /* =========================================================
-     ✅ TAKOFISH（元の釣りゲーム仕様そのまま / GitHub画像版）
-     - 底に複数たこ焼き（生き物っぽく不規則移動）
-     - タップ位置に糸を垂らす → 当たれば釣れる → 巻き上げ
-     - 針先は pick.png
-     - たこ焼き画像：ソース/いかさま/金/虹/生焼け（出現率 55/20/10/5/10）
-     - サイズ：極小/普通/巨大（小さいほど高得点）
-     - 巨大は運が悪いと途中で落ちる
-     - 天敵：上（小）/下（大・遅い） 常駐で泳ぐ
-     - 10〜15秒に1回：超高速天敵が右→左に横切って消える
-     - 入口：window.openTakofishGame()
-     ========================================================= */
-
-  /* ===== GitHub(jsDelivr)画像 ===== */
-  const CDN_BASE = "https://cdn.jsdelivr.net/gh/takoyaki-trc/takoyaki-gate@main/assets/takofish/";
-  const V = "1"; // 画像更新時は 2,3... に（キャッシュ対策）
-
-  const IMG_URLS = {
-    pick:    `${CDN_BASE}pick.png?v=${V}`,
-    sauce:   `${CDN_BASE}tako_sauce.png?v=${V}`,
-    ika:     `${CDN_BASE}tako_ika.png?v=${V}`,
-    gold:    `${CDN_BASE}tako_gold.png?v=${V}`,
-    rainbow: `${CDN_BASE}tako_rainbow.png?v=${V}`,
-    raw:     `${CDN_BASE}tako_raw.png?v=${V}`,
+  /* =========================
+     画像URL（あなたのassets/takofish）
+  ========================= */
+  const IMG = {
+    pick: "https://cdn.jsdelivr.net/gh/takoyaki-trc/takoyaki-gate@main/assets/takofish/pick.png?v=1",
+    tako: {
+      raw:     "https://cdn.jsdelivr.net/gh/takoyaki-trc/takoyaki-gate@main/assets/takofish/tako_raw.png?v=1",
+      sauce:   "https://cdn.jsdelivr.net/gh/takoyaki-trc/takoyaki-gate@main/assets/takofish/tako_sauce.png?v=1",
+      gold:    "https://cdn.jsdelivr.net/gh/takoyaki-trc/takoyaki-gate@main/assets/takofish/tako_gold.png?v=1",
+      rainbow: "https://cdn.jsdelivr.net/gh/takoyaki-trc/takoyaki-gate@main/assets/takofish/tako_rainbow.png?v=1",
+      ika:     "https://cdn.jsdelivr.net/gh/takoyaki-trc/takoyaki-gate@main/assets/takofish/tako_ika.png?v=1"
+    },
+    enemy: {
+      ika:      "https://cdn.jsdelivr.net/gh/takoyaki-trc/takoyaki-gate@main/assets/takofish/ika.png?v=1",
+      touristL: "https://cdn.jsdelivr.net/gh/takoyaki-trc/takoyaki-gate@main/assets/takofish/tourist_left.png?v=1",
+      touristR: "https://cdn.jsdelivr.net/gh/takoyaki-trc/takoyaki-gate@main/assets/takofish/tourist_right.png?v=1",
+    }
   };
 
-  /* ===== モーダルHTML ===== */
-  function buildModalHTML(){
-    return `
-<div class="takofish-modal" id="tfModal" style="position:fixed;inset:0;display:block;z-index:99999;background:rgba(0,0,0,.78)">
-  <div class="takofish-modal__inner" role="dialog" aria-label="たこ焼き釣り"
-       style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-              width:min(420px,94vw);background:#111;border:3px solid #fff;border-radius:10px;overflow:hidden;">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#000;color:#fff;">
-      <div style="font-weight:700;">たこ焼き釣り</div>
-      <button id="tfClose" type="button" aria-label="閉じる"
-              style="font-size:18px;line-height:1;border:2px solid #fff;background:#000;color:#fff;border-radius:8px;padding:2px 10px;cursor:pointer;">×</button>
-    </div>
+  /* =========================
+     スコア（ルールに表示）
+  ========================= */
+  const SCORE = {
+    raw: 5,
+    sauce: 7,
+    gold: 15,
+    rainbow: 25,
+    ika: 12,      // いかさま焼き（レア枠）
+    hitTourist: -10,
+    hitIka: -15
+  };
 
-    <div style="padding:8px 10px;color:#fff;font-size:12px;background:#111;border-top:1px solid rgba(255,255,255,.15);">
-      小さいほど高得点／レアほど高得点／生焼けはマイナス／巨大は途中落下あり
-    </div>
+  /* =========================
+     サイズ
+  ========================= */
+  const SIZE = {
+    tako: 48,
+    pick: 16,
+    tourist: 64,
+    ika: 72
+  };
 
-    <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;padding:8px 10px;background:#111;border-top:1px solid rgba(255,255,255,.15);color:#fff;font-size:12px;">
-      <button id="tfRetry" type="button"
-              style="border:2px solid #fff;background:#000;color:#fff;border-radius:10px;padding:6px 10px;cursor:pointer;">もう一回</button>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-        <span>スコア：<b id="tfScore">0</b></span>
-        <span>残り：<b id="tfTime">30</b>s</span>
-        <span>連続：<b id="tfCombo">0</b></span>
-        <span>失敗：<b id="tfMiss">0</b></span>
-      </div>
-    </div>
+  /* =========================
+     ゲーム設定
+  ========================= */
+  const GAME = {
+    durationSec: 60,
+    takoCount: 10,          // 同時に漂う数
+    maxLine: 340,           // 糸の最大長
+    lineSpeed: 7.2,         // 糸の伸縮速度
+    reelSpeed: 7.6,
+    bg: "#0b1530",
+    water: "rgba(60,120,200,0.18)",
+    stunMs: 650
+  };
 
-    <div style="background:#000;border-top:1px solid rgba(255,255,255,.15);">
-      <canvas id="tfCanvas" width="360" height="520" style="display:block;width:100%;height:auto;image-rendering:pixelated;"></canvas>
-    </div>
-  </div>
-</div>`;
-  }
+  /* =========================
+     ユーティリティ
+  ========================= */
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const rand  = (a,b) => a + Math.random()*(b-a);
 
-  function openGame(){
-    if (document.getElementById("tfModal")) return;
-
-    document.body.insertAdjacentHTML("beforeend", buildModalHTML());
-
-    const modal = document.getElementById("tfModal");
-    document.getElementById("tfClose").addEventListener("click", closeGame);
-    modal.addEventListener("click", (e) => { if (e.target === modal) closeGame(); });
-    document.getElementById("tfRetry").addEventListener("click", () => startGame().catch(console.error));
-
-    startGame().catch(console.error);
-  }
-
-  function closeGame(){
-    stopGame();
-    const m = document.getElementById("tfModal");
-    if (m) m.remove();
-  }
-
-  window.openTakofishGame = openGame;
-
-  /* ===== 画像ロード ===== */
   function loadImage(src){
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error(src));
-      img.src = src;
+    return new Promise((resolve) => {
+      const im = new Image();
+      im.onload = () => resolve(im);
+      im.onerror = () => resolve(null);
+      im.src = src;
     });
   }
 
-  async function loadAllImages(){
-    const keys = Object.keys(IMG_URLS);
-    const images = {};
-    const failed = [];
-
-    for (const k of keys){
-      try{
-        images[k] = await loadImage(IMG_URLS[k]);
-      }catch(e){
-        failed.push({ key:k, url:String(e.message || e) });
-      }
-    }
-    return { images, failed };
+  function aabb(ax, ay, aw, ah, bx, by, bw, bh){
+    return ax < bx+bw && ax+aw > bx && ay < by+bh && ay+ah > by;
   }
 
-  /* ===== ゲーム状態 ===== */
-  let rafId = null;
-  let timerId = null;
-  let onPointer = null;
+  /* =========================
+     入口：外から呼べるように
+  ========================= */
+  window.openTakofishGame = async function openTakofishGame(){
+    // 既存があれば消す
+    const old = document.getElementById("tfOverlay");
+    if (old) old.remove();
 
-  let flashMsg = "";
-  let flashUntil = 0;
+    // オーバーレイ作成
+    const overlay = document.createElement("div");
+    overlay.id = "tfOverlay";
+    overlay.innerHTML = buildHTML();
+    document.body.appendChild(overlay);
 
-  async function startGame(){
-    stopGame();
+    // 参照
+    const rulePanel = overlay.querySelector("#tfRulePanel");
+    const btnStart  = overlay.querySelector("#tfStart");
+    const btnClose1 = overlay.querySelector("#tfCloseRule");
+    const btnClose2 = overlay.querySelector("#tfCloseGame");
 
-    const cvs = document.getElementById("tfCanvas");
+    const gamePanel = overlay.querySelector("#tfGamePanel");
+    const cvs = overlay.querySelector("#tfCanvas");
     const ctx = cvs.getContext("2d");
-    ctx.imageSmoothingEnabled = false;
 
-    const scoreEl = document.getElementById("tfScore");
-    const timeEl  = document.getElementById("tfTime");
-    const comboEl = document.getElementById("tfCombo");
-    const missEl  = document.getElementById("tfMiss");
+    const elScore = overlay.querySelector("#tfScore");
+    const elTime  = overlay.querySelector("#tfTime");
+    const elMsg   = overlay.querySelector("#tfMsg");
 
-    const W = cvs.width;
-    const H = cvs.height;
+    // 閉じる
+    const closeAll = () => overlay.remove();
+    btnClose1.addEventListener("click", closeAll);
+    btnClose2.addEventListener("click", closeAll);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) closeAll();
+    });
 
-    /* ==========================
-       ✅ ここだけ調整ポイント
-    ========================== */
-    const TIME_LIMIT = 30;
+    // ルール→開始
+    btnStart.addEventListener("click", async () => {
+      rulePanel.style.display = "none";
+      gamePanel.style.display = "block";
 
-    // たこ焼き数
-    const ITEM_COUNT = 7;
+      // canvasリサイズ
+      const resize = () => {
+        const wrap = overlay.querySelector("#tfCanvasWrap");
+        const w = Math.floor(wrap.clientWidth);
+        const h = Math.floor(wrap.clientHeight);
+        cvs.width = w * devicePixelRatio;
+        cvs.height = h * devicePixelRatio;
+        cvs.style.width = w+"px";
+        cvs.style.height = h+"px";
+        ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+      };
+      resize();
+      window.addEventListener("resize", resize, { passive:true });
 
-    // 生き物っぽい挙動
-    const ITEM_BASE_SPEED = 45;
-    const ITEM_MAX_SPEED  = 130;
-    const ITEM_ACCEL      = 240;
+      // 画像ロード
+      elMsg.textContent = "画像読み込み中…";
+      const IM = {
+        pick: await loadImage(IMG.pick),
+        tako: {
+          raw: await loadImage(IMG.tako.raw),
+          sauce: await loadImage(IMG.tako.sauce),
+          gold: await loadImage(IMG.tako.gold),
+          rainbow: await loadImage(IMG.tako.rainbow),
+          ika: await loadImage(IMG.tako.ika)
+        },
+        enemy: {
+          ika: await loadImage(IMG.enemy.ika),
+          touristL: await loadImage(IMG.enemy.touristL),
+          touristR: await loadImage(IMG.enemy.touristR),
+        }
+      };
+      elMsg.textContent = "";
 
-    // フック
-    const HOOK_DROP_SPEED = 680;
-    const HOOK_REEL_SPEED = 260;
-    const HOOK_HIT_R      = 10;
+      // ゲーム開始
+      startGame({ overlay, cvs, ctx, IM, elScore, elTime, elMsg, resize });
+    });
 
-    // 描画サイズ
-    const PICK_DRAW = 24;
-    const TAKO_TINY   = 24;
-    const TAKO_NORMAL = 40;
-    const TAKO_GIANT  = 56;
+    // 初期：ルール表示
+    rulePanel.style.display = "block";
+    gamePanel.style.display = "none";
+  };
 
-    // 巨大落下
-    const GIANT_DROP_CHANCE = 0.18;
-    const GIANT_DROP_START_Y = Math.floor(H * 0.62);
+  /* =========================
+     HTML（ルール→ゲーム）
+  ========================= */
+  function buildHTML(){
+    // ルールのスコア表（見やすく固定）
+    return `
+<style>
+#tfOverlay{
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.72);
+  z-index: 999999;
+  display:flex; align-items:center; justify-content:center;
+  padding: 14px;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.tfPanel{
+  width: min(820px, 96vw);
+  max-height: min(90vh, 780px);
+  background: #0a0a0a;
+  border: 3px solid #fff;
+  box-shadow: 0 10px 40px rgba(0,0,0,.45);
+  border-radius: 10px;
+  overflow:hidden;
+}
+.tfHead{
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 10px 12px;
+  background:#000;
+  border-bottom: 2px solid #fff;
+  color:#fff;
+}
+.tfTitle{ font-size: 14px; letter-spacing: .08em; }
+.tfClose{
+  width: 34px; height: 34px;
+  border: 2px solid #fff;
+  background:#000; color:#fff;
+  border-radius: 8px;
+  font-size: 18px; cursor:pointer;
+}
+.tfBody{ padding: 12px; color:#fff; }
+.tfPaper{
+  background: #f2ead6;
+  color: #1a1a1a;
+  border: 3px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 14px 14px;
+}
+.tfPaper h3{ margin: 0 0 10px; font-size: 16px; }
+.tfPaper p{ margin: 8px 0; line-height: 1.5; font-size: 14px; }
+.tfGrid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+.tfBox{
+  background:#fff;
+  border: 2px solid #2a2a2a;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 14px;
+}
+.tfBox b{ display:block; margin-bottom: 6px; }
+.tfTable{
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  font-size: 14px;
+}
+.tfTable td{
+  border: 1px solid #2a2a2a;
+  padding: 6px 8px;
+  background:#fff;
+}
+.tfBtnRow{ margin-top: 12px; display:flex; gap:10px; }
+.tfBtn{
+  border: 3px solid #000;
+  background:#ffeb3b;
+  color:#000;
+  font-weight: 900;
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor:pointer;
+}
+.tfBtnSub{
+  border: 2px solid #2a2a2a;
+  background:#fff;
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor:pointer;
+}
+#tfGamePanel{ display:none; }
+#tfCanvasWrap{
+  width: 100%;
+  height: min(64vh, 520px);
+  background: #071024;
+  border: 2px solid #fff;
+  border-radius: 12px;
+  overflow:hidden;
+  position: relative;
+}
+#tfHud{
+  display:flex; gap: 10px; align-items:center; justify-content:space-between;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+#tfMsg{ opacity: .9; font-size: 13px; }
+.tfMono{ font-variant-numeric: tabular-nums; }
+</style>
 
-    // 天敵（常駐）：上は小さめ、下は遅い
-    const ENEMY_CENTER_Y = Math.floor(H * 0.45);
-    const ENEMY_GAP = 170;
+<div class="tfPanel">
+  <!-- ルール -->
+  <div id="tfRulePanel">
+    <div class="tfHead">
+      <div class="tfTitle">🎣 たこ焼き釣り（ルール説明）</div>
+      <button class="tfClose" id="tfCloseRule" type="button" aria-label="閉じる">×</button>
+    </div>
+    <div class="tfBody">
+      <div class="tfPaper">
+        <h3>遊び方（1分勝負）</h3>
+        <p>画面をタップ / クリックすると、その位置から<strong>糸を垂らして釣り</strong>をします。<br>
+        たこ焼きに当たると自動で巻き上げて獲得！</p>
 
-    const TOURIST_Y = ENEMY_CENTER_Y - Math.floor(ENEMY_GAP * 0.55);
-    const BLACK_Y   = ENEMY_CENTER_Y + Math.floor(ENEMY_GAP * 0.55);
+        <div class="tfGrid">
+          <div class="tfBox">
+            <b>操作</b>
+            ・マウス/指：左右移動（狙う位置）<br>
+            ・タップ/クリック：糸を投下（自動で戻る）<br>
+            ・1回投げたら戻るまで待つ（連打不可）
+          </div>
+          <div class="tfBox">
+            <b>天敵</b>
+            ・上：観光客（左右移動）<br>
+            ・下：イカ（ゆらゆら漂う）<br>
+            天敵に当たるとポイントが減ります。
+          </div>
+        </div>
 
-    const TOURIST_SPEED = 90; // 上
-    const BLACK_SPEED   = 20; // 下（超遅）
+        <p style="margin-top:10px;"><strong>ポイント表</strong></p>
+        <table class="tfTable" aria-label="ポイント表">
+          <tr><td>すっぴん（raw）</td><td>+${SCORE.raw}</td></tr>
+          <tr><td>ソース（sauce）</td><td>+${SCORE.sauce}</td></tr>
+          <tr><td>ゴールド（gold）</td><td>+${SCORE.gold}</td></tr>
+          <tr><td>レインボー（rainbow）</td><td>+${SCORE.rainbow}</td></tr>
+          <tr><td>いかさま焼き（tako_ika）</td><td>+${SCORE.ika}</td></tr>
+          <tr><td>観光客にヒット</td><td>${SCORE.hitTourist}</td></tr>
+          <tr><td>イカにヒット</td><td>${SCORE.hitIka}</td></tr>
+        </table>
 
-    const TOURIST_W = 28;
-    const TOURIST_H = 11;
+        <p style="margin-top:10px;">
+          <strong>勝利条件：</strong> 60秒でできるだけ高得点を目指す！<br>
+          <strong>コツ：</strong> レア（ゴールド/レインボー/いかさま焼き）を狙うと一気に伸びます。
+        </p>
 
-    const BLACK_W = 50;
-    const BLACK_H = 20;
+        <div class="tfBtnRow">
+          <button class="tfBtn" id="tfStart" type="button">START（60秒）</button>
+          <button class="tfBtnSub" id="tfCloseRule2" type="button" onclick="document.getElementById('tfCloseRule').click()">閉じる</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    // 超高速天敵（10〜15秒）
-    const DASH_MIN_SEC = 10;
-    const DASH_MAX_SEC = 15;
-    const DASH_SPEED   = 900;
-    const DASH_W       = 34;
-    const DASH_H       = 14;
-    const DASH_Y       = Math.floor((TOURIST_Y + BLACK_Y) * 0.5) - 12;
+  <!-- ゲーム -->
+  <div id="tfGamePanel">
+    <div class="tfHead">
+      <div class="tfTitle">🎣 たこ焼き釣り（1分）</div>
+      <button class="tfClose" id="tfCloseGame" type="button" aria-label="閉じる">×</button>
+    </div>
 
-    // 出現率（ユーザー指定）
-    const TYPE_WEIGHTS = [
-      { key:"sauce",   w:55 }, // ノーマル
-      { key:"ika",     w:20 }, // ノーマルレア
-      { key:"gold",    w:10 }, // レア
-      { key:"rainbow", w: 5 }, // プレミア
-      { key:"raw",     w:10 }, // ハズレ（マイナス）
-    ];
+    <div class="tfBody">
+      <div id="tfHud">
+        <div>Score: <span id="tfScore" class="tfMono">0</span></div>
+        <div>Time: <span id="tfTime" class="tfMono">60</span>s</div>
+        <div id="tfMsg"></div>
+      </div>
+      <div id="tfCanvasWrap">
+        <canvas id="tfCanvas"></canvas>
+      </div>
+      <div style="margin-top:10px; font-size:13px; opacity:.9;">
+        操作：画面をタップ/クリックで糸を投下。天敵に当たると減点。
+      </div>
+    </div>
+  </div>
+</div>
+`;
+  }
 
-    // サイズ出現率（お好み）
-    const SIZE_WEIGHTS = [
-      { key:"normal", w:62 },
-      { key:"tiny",   w:28 },
-      { key:"giant",  w:10 },
-    ];
-    /* ========================== */
+  /* =========================
+     ゲーム本体
+  ========================= */
+  function startGame({ overlay, cvs, ctx, IM, elScore, elTime, elMsg, resize }){
+    const wrap = overlay.querySelector("#tfCanvasWrap");
 
-    const FLOOR_Y = Math.floor(H * 0.86);
-    const TOP_Y   = 18;
-    const SAFE_MARGIN_X = 10;
+    // 入力（狙い位置）
+    let targetX = 0.5;
+    const pointer = (e) => {
+      const r = wrap.getBoundingClientRect();
+      const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+      targetX = clamp(x / r.width, 0.05, 0.95);
+    };
+    wrap.addEventListener("mousemove", pointer, { passive:true });
+    wrap.addEventListener("touchmove", pointer, { passive:true });
 
-    // スコア
-    let t = TIME_LIMIT;
+    // 状態
     let score = 0;
-    let combo = 0;
-    let miss = 0;
+    let timeLeft = GAME.durationSec;
+    let running = true;
 
-    // util
-    const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
-    const rand  = (a,b)=>a+Math.random()*(b-a);
-
-    function flashText(msg, ms){
-      flashMsg = msg;
-      flashUntil = performance.now() + ms;
-    }
-
-    function circleHit(ax, ay, ar, bx, by, br){
-      const dx = ax - bx, dy = ay - by;
-      return (dx*dx + dy*dy) <= (ar+br)*(ar+br);
-    }
-
-    function circleRectHit(cx, cy, cr, rx, ry, rw, rh){
-      const nx = clamp(cx, rx, rx + rw);
-      const ny = clamp(cy, ry, ry + rh);
-      const dx = cx - nx;
-      const dy = cy - ny;
-      return (dx*dx + dy*dy) <= cr*cr;
-    }
-
-    function pickByWeight(list){
-      let sum = 0;
-      for (const it of list) sum += it.w;
-      let r = Math.random() * sum;
-      for (const it of list){
-        r -= it.w;
-        if (r <= 0) return it.key;
-      }
-      return list[list.length-1].key;
-    }
-
-    /* ===== 画像ロード ===== */
-    ctx.fillStyle = "#0a1020";
-    ctx.fillRect(0,0,W,H);
-    ctx.fillStyle = "#fff";
-    ctx.font = "16px system-ui";
-    ctx.fillText("画像を読み込み中…", 100, 260);
-
-    const { images, failed } = await loadAllImages();
-    if (failed.length){
-      ctx.fillStyle="#0a1020"; ctx.fillRect(0,0,W,H);
-      ctx.fillStyle="#fff"; ctx.font="14px system-ui";
-      ctx.fillText("画像が読み込めないものがあります：", 20, 40);
-      ctx.font="11px system-ui";
-      let y=70;
-      for (const f of failed){
-        ctx.fillText(`- ${f.key}: ${f.url}`, 20, y);
-        y += 16;
-        if (y > H - 30) break;
-      }
-      ctx.fillText("CDN_BASE / ファイル名 を確認してください。", 20, H-16);
-      return;
-    }
-
-    /* ===== サイズ/種類/ポイント ===== */
-    const SIZE_TABLE = {
-      tiny:   { key:"tiny",   label:"極小",  draw: TAKO_TINY,   base: 120 },
-      normal: { key:"normal", label:"普通",  draw: TAKO_NORMAL, base: 70  },
-      giant:  { key:"giant",  label:"巨大",  draw: TAKO_GIANT,  base: 40  },
+    // 糸
+    const line = {
+      x: 0, y0: 18,
+      len: 0,
+      state: "idle", // idle | down | up
+      hasCatch: null,
+      stunUntil: 0
     };
 
-    const TYPE_TABLE = {
-      sauce:   { key:"sauce",   label:"ソース",     mult: 1.00, kind:"plus",  imgKey:"sauce" },
-      ika:     { key:"ika",     label:"いかさま",   mult: 1.40, kind:"plus",  imgKey:"ika" },
-      gold:    { key:"gold",    label:"ゴールド",   mult: 2.80, kind:"plus",  imgKey:"gold" },
-      rainbow: { key:"rainbow", label:"レインボー", mult: 5.50, kind:"plus",  imgKey:"rainbow" },
-      raw:     { key:"raw",     label:"生焼け",     mult: 0.00, kind:"minus", imgKey:"raw", penalty: -120 },
-    };
-
-    function buildTakoyakiSpec(){
-      const sizeKey = pickByWeight(SIZE_WEIGHTS);
-      const typeKey = pickByWeight(TYPE_WEIGHTS);
-
-      const size = SIZE_TABLE[sizeKey];
-      const type = TYPE_TABLE[typeKey];
-
-      let points = 0;
-      if (type.kind === "minus") points = type.penalty;
-      else points = Math.round(size.base * type.mult);
-
-      return { sizeKey, size, type, points };
-    }
-
-    /* ===== 底のたこ焼き（不規則移動） ===== */
-    const items = [];
-    for (let i=0; i<ITEM_COUNT; i++){
-      const spec = buildTakoyakiSpec();
-      const baseY = (FLOOR_Y - 14) + rand(-2, 2);
-
-      items.push({
-        x: rand(W*0.15, W*0.85),
-        baseY,
-        y: baseY,
-        alive: true,
-        spec,
-
-        vx: (Math.random()<0.5?-1:1) * (ITEM_BASE_SPEED + rand(0, 22)),
-        vxTarget: (Math.random()<0.5?-1:1) * (ITEM_BASE_SPEED + rand(0, 50)),
-        bobAmp: rand(0.6, 2.4),
-        bobSpd: rand(3.0, 7.8),
-        bobPhase: rand(0, Math.PI*2),
-        nextMind: performance.now() + rand(450, 1100),
-        pauseUntil: 0,
-      });
-    }
-
-    function resetItem(it){
-      it.spec = buildTakoyakiSpec();
-      const baseY = (FLOOR_Y - 14) + rand(-2, 2);
-
-      it.x = rand(W*0.15, W*0.85);
-      it.baseY = baseY;
-      it.y = baseY;
-      it.alive = true;
-
-      it.vx = (Math.random()<0.5?-1:1) * (ITEM_BASE_SPEED + rand(0, 22));
-      it.vxTarget = (Math.random()<0.5?-1:1) * (ITEM_BASE_SPEED + rand(0, 50));
-      it.bobAmp = rand(0.6, 2.4);
-      it.bobSpd = rand(3.0, 7.8);
-      it.bobPhase = rand(0, Math.PI*2);
-      it.nextMind = performance.now() + rand(450, 1100);
-      it.pauseUntil = 0;
-    }
-
-    /* ===== フック ===== */
-    const hook = {
-      x: W * 0.5,
-      y: TOP_Y,
-      hitR: HOOK_HIT_R,
-      phase: "idle",     // idle | drop | reel
-      hasCatch: false,
-      caught: null,      // spec
-      giantDropArmed: false,
-      giantDropRolled: false,
-      giantWillDrop: false,
-    };
-
-    function setHookIdle(){
-      hook.phase = "idle";
-      hook.y = TOP_Y;
-      hook.hasCatch = false;
-      hook.caught = null;
-      hook.giantDropArmed = false;
-      hook.giantDropRolled = false;
-      hook.giantWillDrop = false;
-    }
-
-    /* ===== 天敵（常駐2体） ===== */
-    const enemies = [
-      { key:"tourist", x:0, y:TOURIST_Y, w:TOURIST_W, h:TOURIST_H, speed:TOURIST_SPEED, dir: 1 },
-      { key:"black",   x:W-BLACK_W, y:BLACK_Y, w:BLACK_W, h:BLACK_H, speed:BLACK_SPEED, dir:-1 },
+    // たこ焼き（漂う）
+    const takoTypes = [
+      { key:"raw", img: IM.tako.raw, pts: SCORE.raw, w: SIZE.tako, h: SIZE.tako, weight: 40 },
+      { key:"sauce", img: IM.tako.sauce, pts: SCORE.sauce, w: SIZE.tako, h: SIZE.tako, weight: 35 },
+      { key:"gold", img: IM.tako.gold, pts: SCORE.gold, w: SIZE.tako, h: SIZE.tako, weight: 14 },
+      { key:"rainbow", img: IM.tako.rainbow, pts: SCORE.rainbow, w: SIZE.tako, h: SIZE.tako, weight: 6 },
+      { key:"ika", img: IM.tako.ika, pts: SCORE.ika, w: SIZE.tako, h: SIZE.tako, weight: 5 }
     ];
-    const enemyVX = (en) => en.dir * en.speed;
-
-    /* ===== 超高速天敵 ===== */
-    const dash = {
-      active: false,
-      x: W + 40,
-      y: DASH_Y,
-      w: DASH_W,
-      h: DASH_H,
-      vx: -DASH_SPEED,
-      nextAt: performance.now() + (DASH_MIN_SEC*1000 + Math.random()*(DASH_MAX_SEC-DASH_MIN_SEC)*1000),
+    const pickWeighted = () => {
+      const sum = takoTypes.reduce((s,t)=>s+t.weight,0);
+      let r = Math.random()*sum;
+      for (const t of takoTypes){ r -= t.weight; if (r<=0) return t; }
+      return takoTypes[0];
     };
 
-    function spawnDash(now){
-      dash.active = true;
-      dash.x = W + dash.w + 6;
-      dash.vx = -DASH_SPEED;
-      dash.nextAt = now + (DASH_MIN_SEC*1000 + Math.random()*(DASH_MAX_SEC-DASH_MIN_SEC)*1000);
-      flashText("⚠ 超高速天敵！", 600);
+    const takos = [];
+    function spawnTako(w, h){
+      const t = pickWeighted();
+      const o = {
+        type: t,
+        x: rand(20, w-20),
+        y: rand(h*0.35, h*0.92),
+        vx: rand(-0.55, 0.55),
+        vy: rand(-0.18, 0.18),
+        wob: rand(0, 9999)
+      };
+      takos.push(o);
     }
-    function despawnDash(){
-      dash.active = false;
-      dash.x = W + dash.w + 6;
+
+    // 天敵：観光客（上で左右往復、向き切り替え）
+    const tourist = {
+      y: 78,
+      x: 100,
+      vx: 1.25,
+      dir: 1 // 1=right, -1=left
+    };
+
+    // 天敵：イカ（下：ゆらゆら）
+    const ika = {
+      baseX: 0.5,
+      baseY: 0.86,
+      t: 0
+    };
+
+    // クリック/タップで投下（戻るまで不可）
+    const cast = (e) => {
+      if (!running) return;
+      const now = performance.now();
+      if (now < line.stunUntil) return;
+      if (line.state !== "idle") return;
+
+      pointer(e);
+      line.x = targetX;
+      line.len = 0;
+      line.hasCatch = null;
+      line.state = "down";
+    };
+    wrap.addEventListener("click", cast);
+    wrap.addEventListener("touchstart", (e)=>{ cast(e); }, { passive:true });
+
+    // タイマー
+    const tickTimer = setInterval(() => {
+      if (!running) return;
+      timeLeft -= 1;
+      elTime.textContent = String(Math.max(0, timeLeft));
+      if (timeLeft <= 0) endGame();
+    }, 1000);
+
+    function endGame(){
+      running = false;
+      elMsg.textContent = `終了！ Score: ${score}`;
+      clearInterval(tickTimer);
+      line.state = "idle";
     }
 
-    /* ===== スコア処理 ===== */
-    function applyCatchScore(spec){
-      if (spec.type.kind === "minus"){
-        score += spec.points;
-        combo = 0;
-        miss++;
+    // 初期生成
+    resize();
+    const w = wrap.clientWidth;
+    const h = wrap.clientHeight;
+    takos.length = 0;
+    for (let i=0; i<GAME.takoCount; i++) spawnTako(w, h);
 
-        scoreEl.textContent = String(score);
-        comboEl.textContent = String(combo);
-        missEl.textContent  = String(miss);
+    // ループ
+    let last = performance.now();
+    function loop(now){
+      const dt = Math.min(33, now - last);
+      last = now;
 
-        flashText(`ハズレ！${spec.type.label} ${spec.points}`, 1100);
+      // サイズ更新
+      const W = wrap.clientWidth;
+      const H = wrap.clientHeight;
+
+      // 更新
+      if (running){
+        updateTakos(dt, W, H);
+        updateEnemies(dt, W, H, now);
+        updateLine(dt, W, H, now);
+        checkCollisions(W, H, now);
+      }
+
+      // 描画
+      draw(W, H, now);
+
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    /* ===== 更新 ===== */
+    function updateTakos(dt, W, H){
+      for (const o of takos){
+        o.wob += dt;
+        o.x += o.vx * dt;
+        o.y += o.vy * dt + Math.sin(o.wob*0.003)*0.08;
+
+        // 壁反射
+        if (o.x < 10){ o.x = 10; o.vx *= -1; }
+        if (o.x > W-10){ o.x = W-10; o.vx *= -1; }
+        // 上下は浅い範囲で
+        const top = H*0.30, bot = H*0.92;
+        if (o.y < top){ o.y = top; o.vy *= -1; }
+        if (o.y > bot){ o.y = bot; o.vy *= -1; }
+      }
+    }
+
+    function updateEnemies(dt, W, H, now){
+      // 観光客：左右往復（そのまま）
+      tourist.x += tourist.vx * tourist.dir * (dt/16.0);
+      const pad = 20;
+      if (tourist.x < pad){ tourist.x = pad; tourist.dir = 1; }
+      if (tourist.x > W - pad - SIZE.tourist){ tourist.x = W - pad - SIZE.tourist; tourist.dir = -1; }
+
+      // イカ：ゆらゆら（sinで左右＋上下ふわ）
+      ika.t += dt;
+      const swayX = Math.sin(ika.t * 0.0022) * (W * 0.18);
+      const bobY  = Math.sin(ika.t * 0.0030) * (H * 0.018);
+      ika.x = (W * ika.baseX) + swayX - SIZE.ika/2;
+      ika.y = (H * ika.baseY) + bobY - SIZE.ika/2;
+
+      // 画面外に出ないように軽くクランプ
+      ika.x = clamp(ika.x, 10, W - SIZE.ika - 10);
+      ika.y = clamp(ika.y, H*0.70, H - SIZE.ika - 8);
+    }
+
+    function updateLine(dt, W, H, now){
+      // 糸の開始位置
+      const x = clamp(line.x * W, 10, W-10);
+      line._px = x;
+      line._py0 = line.y0;
+
+      if (line.state === "down"){
+        line.len += GAME.lineSpeed * (dt/16.0);
+        if (line.len >= GAME.maxLine) line.state = "up";
+      } else if (line.state === "up"){
+        line.len -= GAME.reelSpeed * (dt/16.0);
+        if (line.len <= 0){
+          line.len = 0;
+          line.state = "idle";
+          // 釣れた確定（上まで戻った時）
+          if (line.hasCatch){
+            score += line.hasCatch.type.pts;
+            elScore.textContent = String(score);
+            flash(`+${line.hasCatch.type.pts} (${line.hasCatch.type.key})`);
+            // 捕まえた個体を再配置（転がり続ける）
+            respawnTako(line.hasCatch, W, H);
+            line.hasCatch = null;
+          }
+        }
+      }
+    }
+
+    function respawnTako(o, W, H){
+      const t = pickWeighted();
+      o.type = t;
+      o.x = rand(20, W-20);
+      o.y = rand(H*0.35, H*0.92);
+      o.vx = rand(-0.55, 0.55);
+      o.vy = rand(-0.18, 0.18);
+      o.wob = rand(0, 9999);
+    }
+
+    /* ===== 衝突 ===== */
+    function checkCollisions(W, H, now){
+      if (line.state === "idle") return;
+
+      const hookX = line._px - SIZE.pick/2;
+      const hookY = line._py0 + line.len - SIZE.pick/2;
+
+      // すでに釣れてる時は「敵ヒットだけ見る」
+      if (line.hasCatch){
+        // 敵に当たったら落とす（減点）
+        if (hitEnemy(hookX, hookY)){
+          dropCatch(now);
+        }
         return;
       }
 
-      combo++;
-      const comboBonus = Math.min(120, combo * 6);
-      score += spec.points + comboBonus;
-
-      scoreEl.textContent = String(score);
-      comboEl.textContent = String(combo);
-
-      flashText(`GET! +${spec.points}（${spec.size.label}/${spec.type.label}）`, 950);
-    }
-
-    function onStolen(byKey){
-      combo = 0;
-      miss++;
-
-      if (byKey === "black"){
-        score -= 40;
-        scoreEl.textContent = String(score);
-        flashText("裏市場タコ民に回収された… -40", 1200);
-      } else {
-        flashText("観光客に横取りされた！", 900);
+      // たこ焼きに当たったら釣る
+      for (const o of takos){
+        const tx = o.x - SIZE.tako/2;
+        const ty = o.y - SIZE.tako/2;
+        if (aabb(hookX, hookY, SIZE.pick, SIZE.pick, tx, ty, SIZE.tako, SIZE.tako)){
+          line.hasCatch = o;
+          line.state = "up";
+          flash("HIT! 巻き上げ中…");
+          break;
+        }
       }
 
-      comboEl.textContent = String(combo);
-      missEl.textContent  = String(miss);
-      setHookIdle();
+      // 敵に当たったら減点（釣れてなくても）
+      hitEnemy(hookX, hookY);
     }
 
-    function onDropGiant(){
-      combo = 0;
-      miss++;
-      comboEl.textContent = String(combo);
-      missEl.textContent  = String(miss);
-      flashText("巨大たこ焼き、落ちた！！", 1100);
-      setHookIdle();
+    function hitEnemy(hx, hy){
+      const now = performance.now();
+      // 観光客
+      const tX = tourist.x;
+      const tY = tourist.y;
+      if (aabb(hx, hy, SIZE.pick, SIZE.pick, tX, tY, SIZE.tourist, SIZE.tourist)){
+        score += SCORE.hitTourist;
+        elScore.textContent = String(score);
+        flash(`${SCORE.hitTourist}（観光客）`);
+        line.stunUntil = now + GAME.stunMs;
+        // すぐ巻き戻し
+        line.state = "up";
+        return true;
+      }
+      // イカ
+      if (aabb(hx, hy, SIZE.pick, SIZE.pick, ika.x, ika.y, SIZE.ika, SIZE.ika)){
+        score += SCORE.hitIka;
+        elScore.textContent = String(score);
+        flash(`${SCORE.hitIka}（イカ）`);
+        line.stunUntil = now + GAME.stunMs;
+        line.state = "up";
+        return true;
+      }
+      return false;
     }
 
-    /* ===== 入力：タップ位置に落下 ===== */
-    function pointerToCanvasX(e){
-      const rect = cvs.getBoundingClientRect();
-      const x = (e.clientX - rect.left) * (W / rect.width);
-      return clamp(x, SAFE_MARGIN_X, W - SAFE_MARGIN_X);
+    function dropCatch(now){
+      // 釣れてるものを落とす＋減点は「敵側」で済んでる想定
+      if (!line.hasCatch) return;
+      flash("落とした…！");
+      // 落とした個体は再配置
+      respawnTako(line.hasCatch, wrap.clientWidth, wrap.clientHeight);
+      line.hasCatch = null;
+      line.state = "up";
+      line.stunUntil = now + GAME.stunMs;
     }
 
-    function startDropAt(x){
-      if (t <= 0) return;
-      if (hook.phase !== "idle") return;
-
-      hook.x = clamp(x, SAFE_MARGIN_X, W - SAFE_MARGIN_X);
-      hook.phase = "drop";
-      hook.hasCatch = false;
-      hook.caught = null;
-      hook.giantDropArmed = false;
-      hook.giantDropRolled = false;
-      hook.giantWillDrop = false;
+    /* ===== 表示 ===== */
+    let flashUntil = 0;
+    function flash(text){
+      elMsg.textContent = text;
+      flashUntil = performance.now() + 700;
     }
 
-    /* ===== 描画ヘルパー ===== */
-    function drawImageCentered(img, x, y, size){
-      ctx.drawImage(img, Math.round(x - size/2), Math.round(y - size/2), size, size);
-    }
-
-    function drawBackground(){
-      ctx.fillStyle = "#0a1020";
+    function draw(W, H, now){
+      // 背景
+      ctx.clearRect(0,0,W,H);
+      ctx.fillStyle = GAME.bg;
       ctx.fillRect(0,0,W,H);
 
-      // 底帯
-      ctx.fillStyle = "rgba(255,255,255,0.08)";
-      ctx.fillRect(0, FLOOR_Y, W, H - FLOOR_Y);
-      ctx.fillStyle = "rgba(255,255,255,0.06)";
-      ctx.fillRect(0, FLOOR_Y - 6, W, 6);
-    }
+      // 水っぽい帯
+      ctx.fillStyle = GAME.water;
+      ctx.fillRect(0, H*0.22, W, H*0.78);
 
-    function drawEnemies(){
-      // 上（観光客）小
-      const a = enemies[0];
-      ctx.fillStyle = "#e6e6e6";
-      ctx.fillRect(Math.round(a.x), Math.round(a.y - a.h/2), a.w, a.h);
-      ctx.fillStyle = "#222";
-      ctx.fillRect(Math.round(a.x + a.w - 7), Math.round(a.y - a.h/2 + Math.max(1, Math.floor(a.h/2) - 2)), 6, 4);
-
-      // 下（裏市場）大
-      const b = enemies[1];
-      ctx.fillStyle = "#111";
-      ctx.fillRect(Math.round(b.x), Math.round(b.y - b.h/2), b.w, b.h);
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(Math.round(b.x + 10), Math.round(b.y - b.h/2 + 7), 4, 4);
-      ctx.fillRect(Math.round(b.x + 24), Math.round(b.y - b.h/2 + 7), 4, 4);
-    }
-
-    function drawDash(){
-      if (!dash.active) return;
-      const ex = Math.round(dash.x);
-      const ey = Math.round(dash.y - dash.h/2);
-      ctx.fillStyle = "#ffd24a";
-      ctx.fillRect(ex, ey, dash.w, dash.h);
-      ctx.fillStyle = "#111";
-      ctx.fillRect(ex + dash.w - 8, ey + 4, 7, 6);
-    }
-
-    function drawItems(){
-      for (const it of items){
-        if (!it.alive) continue;
-        const img = images[it.spec.type.imgKey];
-        drawImageCentered(img, it.x, it.y, it.spec.size.draw);
-      }
-    }
-
-    function drawHook(){
-      // 糸
-      ctx.strokeStyle = "rgba(255,255,255,.25)";
-      ctx.beginPath();
-      ctx.moveTo(hook.x, TOP_Y);
-      ctx.lineTo(hook.x, hook.y);
-      ctx.stroke();
-
-      // 針先（ピック）
-      drawImageCentered(images.pick, hook.x, hook.y, PICK_DRAW);
-
-      // 釣れてるたこ焼き
-      if (hook.hasCatch && hook.caught){
-        const s = hook.caught.size.draw;
-        const ty = hook.y + (PICK_DRAW/2) + (s/2) - 2;
-        const img = images[hook.caught.type.imgKey];
-        drawImageCentered(img, hook.x, ty, s);
-      }
-    }
-
-    function drawHUD(now){
-      ctx.fillStyle = "#fff";
-      ctx.font = "13px system-ui";
-
-      if (hook.phase === "idle") ctx.fillText("タップ：好きな位置に糸を垂らす", 10, 18);
-      else if (hook.phase === "drop") ctx.fillText("落下中…当てろ！", 10, 18);
-      else ctx.fillText("巻き上げ中！天敵＆巨大落下に注意！", 10, 18);
-
-      if (now < flashUntil && flashMsg){
-        ctx.fillStyle = "rgba(0,0,0,.55)";
-        ctx.fillRect(0, 28, W, 28);
-        ctx.fillStyle = "#fff";
-        ctx.font = "14px system-ui";
-        ctx.fillText(flashMsg, 12, 48);
+      // たこ焼き
+      for (const o of takos){
+        const im = o.type.img;
+        const x = o.x - SIZE.tako/2;
+        const y = o.y - SIZE.tako/2;
+        if (im) ctx.drawImage(im, x, y, SIZE.tako, SIZE.tako);
+        else {
+          ctx.fillStyle = "#ffcc66";
+          ctx.fillRect(x,y,SIZE.tako,SIZE.tako);
+        }
       }
 
-      if (t <= 0){
-        ctx.fillStyle = "rgba(0,0,0,.65)";
+      // 観光客（向き）
+      const tIm = (tourist.dir === 1) ? IM.enemy.touristR : IM.enemy.touristL;
+      if (tIm) ctx.drawImage(tIm, tourist.x, tourist.y, SIZE.tourist, SIZE.tourist);
+
+      // イカ（ゆらゆら）
+      if (IM.enemy.ika) ctx.drawImage(IM.enemy.ika, ika.x, ika.y, SIZE.ika, SIZE.ika);
+
+      // 糸＆針
+      const x = clamp(targetX * W, 10, W-10);
+      const y0 = 18;
+
+      // 糸（投下中/巻き上げ中だけ）
+      if (line.state !== "idle"){
+        const lx = line._px;
+        const ly0 = line._py0;
+        const ly1 = ly0 + line.len;
+
+        // 糸
+        ctx.strokeStyle = "rgba(255,255,255,0.85)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(lx, ly0);
+        ctx.lineTo(lx, ly1);
+        ctx.stroke();
+
+        // 針
+        const px = lx - SIZE.pick/2;
+        const py = ly1 - SIZE.pick/2;
+        if (IM.pick) ctx.drawImage(IM.pick, px, py, SIZE.pick, SIZE.pick);
+        else {
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(px, py, SIZE.pick, SIZE.pick);
+        }
+
+        // 釣れてるとき：針の上にたこ焼き表示（ぶら下がり）
+        if (line.hasCatch){
+          const im = line.hasCatch.type.img;
+          const tx = lx - SIZE.tako/2;
+          const ty = ly1 + 8;
+          if (im) ctx.drawImage(im, tx, ty, SIZE.tako, SIZE.tako);
+        }
+      } else {
+        // idle時：糸のスタン中表示（薄く）
+        if (now < line.stunUntil){
+          ctx.strokeStyle = "rgba(255,80,80,0.55)";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(x, y0);
+          ctx.lineTo(x, y0 + 40);
+          ctx.stroke();
+        }
+      }
+
+      // フラッシュ消す
+      if (now > flashUntil) elMsg.textContent = "";
+      // 時間切れの表示
+      if (!running){
+        ctx.fillStyle = "rgba(0,0,0,0.55)";
         ctx.fillRect(0,0,W,H);
         ctx.fillStyle = "#fff";
-        ctx.font = "22px system-ui";
-        ctx.fillText("TIME UP!", 120, 230);
+        ctx.font = "bold 22px system-ui, sans-serif";
+        ctx.fillText(`FINISH!  Score: ${score}`, 18, 44);
+        ctx.font = "14px system-ui, sans-serif";
+        ctx.fillText("×で閉じる / もう一度やるなら閉じて再起動", 18, 68);
       }
     }
-
-    function render(now){
-      drawBackground();
-      drawEnemies();
-      drawDash();
-
-      if (!hook.hasCatch) drawItems();
-      drawHook();
-      drawHUD(now);
-    }
-
-    /* ===== ループ ===== */
-    let last = performance.now();
-
-    function step(now){
-      const dt = Math.min(0.033, (now - last) / 1000);
-      last = now;
-
-      if (t > 0){
-        // たこ焼き：生き物っぽく不規則
-        for (const it of items){
-          if (!it.alive) continue;
-
-          if (now < it.pauseUntil){
-            it.vx *= 0.90;
-          } else {
-            if (now >= it.nextMind){
-              if (Math.random() < 0.10){
-                it.pauseUntil = now + rand(260, 620);
-              }
-
-              const flip = (Math.random() < 0.18) ? -1 : 1;
-              const spd = ITEM_BASE_SPEED + rand(-18, 60);
-              it.vxTarget = clamp(flip * (Math.random()<0.5?-1:1) * spd, -ITEM_MAX_SPEED, ITEM_MAX_SPEED);
-
-              it.bobAmp = clamp(it.bobAmp + rand(-0.6, 0.9), 0.5, 3.4);
-              it.bobSpd = clamp(it.bobSpd + rand(-1.2, 1.4), 2.0, 9.0);
-
-              it.nextMind = now + rand(350, 1300);
-            }
-
-            const dv = it.vxTarget - it.vx;
-            const stepV = clamp(dv, -ITEM_ACCEL*dt, ITEM_ACCEL*dt);
-            it.vx += stepV;
-
-            it.vx += rand(-6, 6) * dt;
-            it.vx = clamp(it.vx, -ITEM_MAX_SPEED, ITEM_MAX_SPEED);
-          }
-
-          it.x += it.vx * dt;
-
-          const half = it.spec.size.draw / 2;
-          if (it.x - half < SAFE_MARGIN_X){
-            it.x = SAFE_MARGIN_X + half;
-            it.vx = Math.abs(it.vx) * (0.85 + Math.random()*0.25);
-            it.vxTarget = Math.abs(it.vxTarget) * (0.8 + Math.random()*0.4);
-            it.nextMind = Math.min(it.nextMind, now + rand(120, 420));
-          }
-          if (it.x + half > W - SAFE_MARGIN_X){
-            it.x = (W - SAFE_MARGIN_X) - half;
-            it.vx = -Math.abs(it.vx) * (0.85 + Math.random()*0.25);
-            it.vxTarget = -Math.abs(it.vxTarget) * (0.8 + Math.random()*0.4);
-            it.nextMind = Math.min(it.nextMind, now + rand(120, 420));
-          }
-
-          it.y = it.baseY + Math.sin((now/1000) * it.bobSpd + it.bobPhase) * it.bobAmp;
-        }
-
-        // 常駐天敵
-        for (const en of enemies){
-          en.x += enemyVX(en) * dt;
-          if (en.x < 0){ en.x = 0; en.dir *= -1; }
-          if (en.x + en.w > W){ en.x = W - en.w; en.dir *= -1; }
-        }
-
-        // 超高速天敵：時間で出現
-        if (!dash.active && now >= dash.nextAt){
-          spawnDash(now);
-        }
-        if (dash.active){
-          dash.x += dash.vx * dt;
-          if (dash.x + dash.w < -10) despawnDash();
-        }
-
-        // フック：落下
-        if (hook.phase === "drop"){
-          hook.y += HOOK_DROP_SPEED * dt;
-
-          // ヒット判定
-          if (!hook.hasCatch){
-            for (const it of items){
-              if (!it.alive) continue;
-
-              const s = it.spec.size.draw;
-              const rr = s * 0.38;
-              if (circleHit(hook.x, hook.y, hook.hitR, it.x, it.y, rr)){
-                hook.hasCatch = true;
-                hook.phase = "reel";
-                hook.caught = it.spec;
-
-                hook.giantDropArmed  = (it.spec.sizeKey === "giant");
-                hook.giantDropRolled = false;
-                hook.giantWillDrop   = false;
-
-                it.alive = false;
-                flashText(`HIT!（${it.spec.size.label}/${it.spec.type.label}）`, 800);
-                break;
-              }
-            }
-          }
-
-          // 底到達（空振り）
-          if (hook.y >= FLOOR_Y - 10){
-            hook.y = FLOOR_Y - 10;
-            hook.phase = "reel";
-
-            if (!hook.hasCatch){
-              combo = 0;
-              comboEl.textContent = String(combo);
-              flashText("空振り…！", 650);
-            }
-          }
-        }
-
-        // フック：巻き上げ
-        if (hook.phase === "reel"){
-          hook.y -= HOOK_REEL_SPEED * dt;
-
-          // 巨大：途中落下
-          if (hook.hasCatch && hook.caught && hook.giantDropArmed){
-            if (!hook.giantDropRolled && hook.y < GIANT_DROP_START_Y){
-              hook.giantDropRolled = true;
-              hook.giantWillDrop = (Math.random() < GIANT_DROP_CHANCE);
-            }
-            if (hook.giantWillDrop && hook.y < (GIANT_DROP_START_Y - 40)){
-              const dead = items.find(v => !v.alive);
-              if (dead) resetItem(dead);
-
-              hook.hasCatch = false;
-              hook.caught = null;
-              onDropGiant();
-            }
-          }
-
-          // 天敵衝突（釣れてる時のみ）
-          if (hook.hasCatch && hook.caught){
-            const fishSize = hook.caught.size.draw;
-            const fishR = fishSize * 0.38;
-            const fishX = hook.x;
-            const fishY = hook.y + (PICK_DRAW/2) + (fishSize/2) - 2;
-
-            // 常駐天敵
-            for (const en of enemies){
-              const hit = circleRectHit(
-                fishX, fishY, fishR,
-                en.x, en.y - en.h/2, en.w, en.h
-              );
-              if (hit){
-                const dead = items.find(v => !v.alive);
-                if (dead) resetItem(dead);
-
-                hook.hasCatch = false;
-                hook.caught = null;
-                onStolen(en.key);
-                break;
-              }
-            }
-
-            // 超高速天敵
-            if (hook.hasCatch && dash.active){
-              const hitDash = circleRectHit(
-                fishX, fishY, fishR,
-                dash.x, dash.y - dash.h/2, dash.w, dash.h
-              );
-              if (hitDash){
-                const dead = items.find(v => !v.alive);
-                if (dead) resetItem(dead);
-
-                hook.hasCatch = false;
-                hook.caught = null;
-                onStolen("tourist");
-                despawnDash();
-              }
-            }
-          }
-
-          // 上まで到達
-          if (hook.y <= TOP_Y){
-            hook.y = TOP_Y;
-
-            if (hook.hasCatch && hook.caught){
-              const dead = items.find(v => !v.alive);
-              if (dead) resetItem(dead);
-
-              applyCatchScore(hook.caught);
-
-              hook.hasCatch = false;
-              hook.caught = null;
-              setHookIdle();
-            } else {
-              setHookIdle();
-            }
-          }
-        }
-      }
-
-      // HUD更新（DOM）
-      timeEl.textContent  = String(Math.max(0, t));
-      scoreEl.textContent = String(score);
-      comboEl.textContent = String(combo);
-      missEl.textContent  = String(miss);
-
-      render(now);
-      rafId = requestAnimationFrame(step);
-    }
-
-    // 入力
-    onPointer = (e) => {
-      e.preventDefault();
-      startDropAt(pointerToCanvasX(e));
-    };
-    cvs.addEventListener("pointerdown", onPointer);
-
-    // タイマー
-    timerId = setInterval(() => {
-      t--;
-      if (t <= 0) t = 0;
-    }, 1000);
-
-    // 初期化
-    setHookIdle();
-    flashMsg = "";
-    flashUntil = 0;
-
-    last = performance.now();
-    rafId = requestAnimationFrame(step);
-  }
-
-  function stopGame(){
-    if (timerId) clearInterval(timerId);
-    timerId = null;
-
-    if (rafId) cancelAnimationFrame(rafId);
-    rafId = null;
-
-    const cvs = document.getElementById("tfCanvas");
-    if (cvs && onPointer){
-      cvs.removeEventListener("pointerdown", onPointer);
-    }
-    onPointer = null;
   }
 })();
+
 
   // 入口タコ民を押したら起動
   const entry = document.querySelector(".takomin--fish");
