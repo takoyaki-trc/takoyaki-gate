@@ -1,4 +1,3 @@
-<script>
 (() => {
 /* =====================================================
    TAKOFISH FINAL GAME
@@ -169,7 +168,6 @@ async function startGame(){
  requestAnimationFrame(loop);
 }
 })();
-</script>
 
   // 入口タコ民を押したら起動
   const entry = document.querySelector(".takomin--fish");
