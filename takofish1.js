@@ -1,4 +1,3 @@
-<script>
 (() => {
   /* ==========================
      takofish.js（画像版・完全）
@@ -847,4 +846,13 @@
     onPointer = null;
   }
 })();
-</script>
+
+
+  // 入口タコ民を押したら起動
+  const entry = document.querySelector(".takomin--fish");
+  if (entry){
+    entry.addEventListener("click", (e) => {
+      e.preventDefault();
+      window.openTakofishGame();
+    });
+  }
