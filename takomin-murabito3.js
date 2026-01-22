@@ -59,27 +59,19 @@ window.IDLE_TALK = {
   }
 };
 
-
 /* =========================
-   idle-talk.js（完全版・早口調整）
-   - 放置時のみ発話
+   idle-talk.js（待機起動・完全版・早口）
+   - window.TALK と window.IDLE_TALK が揃うまで待つ
+   - 放置時のみ独り言（20〜45秒）
    - 性格（人格）をランダムで切替
-   - 人格ごとに吹き出しの雰囲気が変わる
 ========================= */
 (() => {
   "use strict";
 
-  const TALK = window.TALK;
-  const IDLE_TALK = window.IDLE_TALK;
-  if (!TALK || !IDLE_TALK) return;
-
-  /* ===== 設定（★ここが早くなっている） ===== */
+  /* ===== 設定 ===== */
   const IDLE_MIN = 20 * 1000;   // 最短 20秒
   const IDLE_MAX = 45 * 1000;   // 最長 45秒
-  const DISPLAY_MS = 5200;      // 吹き出し表示時間
-
-  const isNight = () =>
-    document.documentElement.classList.contains("is-night");
+  const DISPLAY_MS = 5200;      // 表示時間
 
   function rand(min, max){
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -88,18 +80,23 @@ window.IDLE_TALK = {
     return arr[Math.floor(Math.random() * arr.length)];
   }
 
-  function getNpcs(){
+  // ✅ 夜判定：BASE側の isNight を優先（無ければ html.is-night）
+  const isNight = () => {
+    if (typeof window.__isNight === "function") return !!window.__isNight();
+    return document.documentElement.classList.contains("is-night");
+  };
+
+  function getNpcs(TALK){
     return Array.from(document.querySelectorAll(".takomin[data-id]"))
       .map(el => ({
         el,
         id: el.dataset.id,
         balloon: el.querySelector(".takomin-balloon")
       }))
-      .filter(n => n.balloon && TALK[n.id]);
+      .filter(n => n.balloon && TALK && TALK[n.id]);
   }
 
-  /* ===== 人格つきセリフを取得 ===== */
-  function pickIdleLine(){
+  function pickIdleLine(IDLE_TALK){
     const group = isNight() ? IDLE_TALK.night : IDLE_TALK.day;
     if (!group) return { text:"", personality:"" };
 
@@ -115,14 +112,13 @@ window.IDLE_TALK = {
 
   let hideTimer = null;
   function showBalloon(npc, text, personality){
-    if (!npc || !text) return;
+    if (!npc || !npc.balloon || !text) return;
 
     const b = npc.balloon;
 
-    // 人格クラスを全リセット
+    // 人格クラスをリセット（安全重視）
     b.className = "takomin-balloon";
 
-    // 人格クラス付与（人格切替が目で分かる）
     if (personality) b.classList.add("idle-" + personality);
 
     b.textContent = text;
@@ -135,32 +131,46 @@ window.IDLE_TALK = {
   }
 
   let idleTimer = null;
-  function schedule(){
+  function schedule(runFn){
     if (idleTimer) clearTimeout(idleTimer);
-    idleTimer = setTimeout(runIdle, rand(IDLE_MIN, IDLE_MAX));
+    idleTimer = setTimeout(runFn, rand(IDLE_MIN, IDLE_MAX));
   }
 
-  function reset(){
-    schedule();
+  function start(){
+    const TALK = window.TALK;
+    const IDLE_TALK = window.IDLE_TALK;
+    if (!TALK || !IDLE_TALK) return false;
+
+    function runIdle(){
+      const npcs = getNpcs(TALK);
+      if (!npcs.length) return schedule(runIdle);
+
+      const npc = pick(npcs);
+      const { text, personality } = pickIdleLine(IDLE_TALK);
+
+      showBalloon(npc, text, personality);
+      schedule(runIdle);
+    }
+
+    // ユーザー操作でリセット
+    const reset = () => schedule(runIdle);
+    ["click","pointerdown","keydown","scroll","touchstart","mousemove"]
+      .forEach(ev => window.addEventListener(ev, reset, { passive:true }));
+
+    schedule(runIdle);
+    return true;
   }
 
-  function runIdle(){
-    const npcs = getNpcs();
-    if (!npcs.length) return schedule();
+  // ✅ TALK/IDLE_TALK が揃うまで待機して起動（順番事故を潰す）
+  const WAIT_LIMIT_MS = 10000; // 10秒待っても揃わなければ諦め
+  const startedAt = Date.now();
 
-    const npc = pick(npcs);
-    const { text, personality } = pickIdleLine();
+  (function boot(){
+    if (start()) return;
+    if (Date.now() - startedAt > WAIT_LIMIT_MS) return;
+    setTimeout(boot, 200);
+  })();
 
-    showBalloon(npc, text, personality);
-    schedule();
-  }
-
-  /* ===== ユーザー操作でリセット ===== */
-  ["click","pointerdown","keydown","scroll","touchstart","mousemove"]
-    .forEach(ev =>
-      window.addEventListener(ev, reset, { passive:true })
-    );
-
-  // 初期スタート
-  schedule();
 })();
+
+
