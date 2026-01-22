@@ -168,3 +168,57 @@
   left: 52% !important;
   transform: translate(-50%, -100%) !important;
 }
+
+
+
+
+/* =========================
+  ✅ ゲート：アイコンを常に同サイズ・同位置に固定
+  （イベント時だけ小さく見える問題対策）
+========================= */
+
+/* 祭壇スポットは子要素absoluteの基準にする */
+.map-wrap .spot--gate{
+  position: absolute;     /* 既にabsoluteならOK */
+  overflow: visible;
+}
+
+/* 土台（祭壇ベース）は通常通り */
+.map-wrap .spot--gate .spot__base{
+  display:block;
+  width: 100%;
+  height: auto;
+}
+
+/* ✅ 上に重ねるアイコンを「固定サイズ＆中央固定」 */
+.map-wrap .spot--gate .spot__icon{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+
+  /* ここがキモ：画像の実サイズに依存させない */
+  width: 92%;        /* ←大きくしたいなら 100% まで上げてOK */
+  height: 92%;
+  max-width: none;
+  max-height: none;
+
+  display: block;
+  object-fit: contain;   /* 画像が潰れない */
+  pointer-events: none;  /* タップ判定は gate-hit に任せる */
+}
+
+/* ✅ gate-hit（透明ボタン）も祭壇と同じ範囲に固定したい場合 */
+.map-wrap .gate-hit{
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translate(-50%, -100%);
+
+  width: clamp(124px, 12vw, 250px); /* spotと合わせる */
+  height: clamp(124px, 12vw, 250px);
+
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
