@@ -1,8 +1,5 @@
 /* =========================
    boss.css（演出専用：最終・安全版）
-   - 位置座標や night-only は含めない（BASE側で管理）
-   - モーダルは gate-modal より必ず上
-   - PC/スマホで暗幕が出ない事故を潰す
 ========================= */
 
 /* 夜のボス感：ふわっと脈動（boss-gateに適用） */
@@ -10,35 +7,31 @@ html.is-night .boss-gate{
   animation: bossPulse 1.6s ease-in-out infinite;
 }
 @keyframes bossPulse{
-  0%{ transform: translateX(-50%) scale(1);        opacity: 0.95; }
-  50%{ transform: translateX(-50%) scale(1.04);    opacity: 1; }
-  100%{ transform: translateX(-50%) scale(1);      opacity: 0.95; }
+  0%{ transform: translateX(-50%) scale(1);      opacity: 0.95; }
+  50%{ transform: translateX(-50%) scale(1.04);  opacity: 1; }
+  100%{ transform: translateX(-50%) scale(1);    opacity: 0.95; }
 }
 
 /* =========================
    ボス会話 / 結果：暗幕（最前面）
 ========================= */
 
-/* 暗幕は共通で最前面固定 */
 .boss-talk,
 .boss-overlay{
   position: fixed !important;
   inset: 0 !important;
-  display: none;                 /* JSが display を切替 */
+  display: none; /* JSが切替 */
   background: rgba(0,0,0,0.85) !important;
+
+  /* ✅ これが超重要：下の要素にクリックを渡さない */
+  pointer-events: auto !important;
+  touch-action: manipulation;
 }
 
-/* gate-modal(10000)より確実に上にする */
-.boss-talk{   z-index: 30000 !important; }
-.boss-overlay{z-index: 30001 !important; }
+.boss-talk{    z-index: 30000 !important; }
+.boss-overlay{ z-index: 30001 !important; }
 
-/* JSが display:block を入れる方式に確実対応 */
-.boss-talk[style*="display: block"],
-.boss-overlay[style*="display: block"]{
-  display: block !important;
-}
-
-/* もし将来 class 方式にしても対応できるように */
+/* ✅ class方式で確実に出す（style判定より強い） */
 .boss-talk.is-open,
 .boss-overlay.is-open{
   display: block !important;
@@ -163,8 +156,3 @@ html.is-night .boss-gate{
     linear-gradient(90deg, #ff3, #f3f, #3ff, #3f3, #ff3) border-box;
   border: 3px solid transparent;
 }
-
-
-.boss-talk{ z-index: 30000 !important; }
-.boss-overlay{ z-index: 30001 !important; }
-
