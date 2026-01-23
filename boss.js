@@ -75,12 +75,11 @@
       });
     }
   };
-
-  // ===== 実行 =====
-  // addTestBtn(); ← ★ここを呼ばない（BOSS TESTは出ない）
-  bindBossGate();
-  setTimeout(bindBossGate, 500);
-  setTimeout(bindBossGate, 1500);
+// ===== 実行 =====
+// addTestBtn();  ← ★完全に削除 or コメントアウト
+bindBossGate();
+setTimeout(bindBossGate, 500);
+setTimeout(bindBossGate, 1500);
 
 })();
 
