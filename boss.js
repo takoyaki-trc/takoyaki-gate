@@ -1,5 +1,5 @@
 (() => {
-  // ===== boss.js が動いてるか確認ボタン（必ず出る） =====
+  // ===== boss.js が動いてるか確認ボタン（※本番では無効） =====
   const addTestBtn = () => {
     if (document.getElementById("bossTestBtn")) return;
     const btn = document.createElement("button");
@@ -35,7 +35,7 @@
     document.body.appendChild(talk);
   }
 
-  // ===== 最前面固定（強制） =====
+  // ===== 最前面固定 =====
   const forceFront = () => {
     document.body.appendChild(talk);
     talk.style.position = "fixed";
@@ -50,7 +50,6 @@
   };
 
   const openTalk = () => {
-    // ゲートのモーダルが開いてたら閉じる（事故防止）
     const gm = document.getElementById("gateModal");
     if (gm) gm.classList.remove("is-open");
 
@@ -59,13 +58,13 @@
     talk.classList.add("is-open");
 
     const t = talk.querySelector("#bossTalkText");
-    if (t) t.textContent = "✅ ボス会話が出ました！次は boss-gate のクリックを繋ぐだけ。";
+    if (t) t.textContent = "ボスが現れた…！";
 
     const back = talk.querySelector("#bossBack");
     if (back) back.onclick = closeTalk;
   };
 
-  // ===== boss-gate を押したら開く（クリック問題があるなら、ここが効かない） =====
+  // ===== boss-gate を押したら開く =====
   const bindBossGate = () => {
     const gate = document.querySelector(".boss-gate");
     if (gate && !gate.dataset.bound) {
@@ -78,7 +77,7 @@
   };
 
   // ===== 実行 =====
-  addTestBtn();
+  // addTestBtn(); ← ★ここを呼ばない（BOSS TESTは出ない）
   bindBossGate();
   setTimeout(bindBossGate, 500);
   setTimeout(bindBossGate, 1500);
