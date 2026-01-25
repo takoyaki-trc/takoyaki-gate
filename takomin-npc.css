@@ -2,7 +2,7 @@
 
 /* ===== 全体配置 ===== */
 .takomin-area{
-  margin:6px auto 24px;
+  margin:12px auto 24px;
   display:flex;
   justify-content:center;
   padding:0 10px;
@@ -45,11 +45,11 @@
   flex:1 1 auto !important;
   min-width:0 !important;
   max-width:100%;
-  padding:3px 12px;
+  padding:3px 15px;
   background:#000;
   color:#fff;
   font-size:15px;
-  line-height:0.8;
+  line-height:0.1;
   font-family:"DotGothic16","PixelMplus10",monospace;
   box-sizing:border-box;
   word-break:break-word;
@@ -71,7 +71,7 @@
 
 /* ===== スマホ微調整（横並びは維持） ===== */
 @media (max-width:480px){
-  .takomin-text{ font-size:12px; }
+  .takomin-text{ font-size:15px; }
 }
 
 
