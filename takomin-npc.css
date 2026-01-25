@@ -45,11 +45,11 @@
   flex:1 1 auto !important;
   min-width:0 !important;
   max-width:100%;
-  padding:6px 10px;
+  padding:3px 8px;
   background:#000;
   color:#fff;
   font-size:13px;
-  line-height:1.6;
+  line-height:1.2;
   font-family:"DotGothic16","PixelMplus10",monospace;
   box-sizing:border-box;
   word-break:break-word;
