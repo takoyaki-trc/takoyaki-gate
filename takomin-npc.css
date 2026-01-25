@@ -41,19 +41,16 @@
 }
 
 /* ===== 横テキスト（黒バー本体：常に表示してチラつかない） ===== */
-.takomin-text{
-  flex:1 1 auto !important;
-  min-width:0 !important;
-  max-width:100%;
-  padding:3px 15px;
-  background:#000;
-  color:#fff;
-  font-size:15px;
-  line-height:0.1;
-  font-family:"DotGothic16","PixelMplus10",monospace;
-  box-sizing:border-box;
-  word-break:break-word;
 
+.takomin-text{
+  padding:2px 10px;
+  font-size:15px;
+  line-height:1.2;      /* 0.1はやめる */
+  min-height:0;         /* 固定してるなら解除 */
+}
+
+
+  
   /* ▼ 黒バーは消さない（フェード対象にしない） */
   opacity:1 !important;
 }
