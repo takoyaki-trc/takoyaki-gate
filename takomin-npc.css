@@ -41,19 +41,36 @@
 }
 
 /* ===== 横テキスト（黒バー本体：常に表示してチラつかない） ===== */
-
 .takomin-text{
-  flex:1 1 auto !important;
-  min-width:0 !important;
-  max-width:100%;
-  padding:6px 20px;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  max-width: 100%;
+  box-sizing: border-box;
+  word-break: break-word;
+
   background:#000;
   color:#fff;
   font-size:15px;
-  line-height:1.4;
   font-family:"DotGothic16","PixelMplus10",monospace;
-  box-sizing:border-box;
-  word-break:break-word;
+
+  /* ✅ 高さを少し出す（好きな高さに調整OK） */
+  min-height: 52px;          /* ←ここを 48〜64px で調整 */
+
+  /* ✅ 中身（文字）を縦中央に */
+  display: flex;
+  align-items: center;
+
+  /* ✅ 左右の余白は維持、上下はflex中央に任せる */
+  padding: 0 20px;
+
+  /* 行間 */
+  line-height: 1.4;
+
+  /* 黒バーは消さない（フェード対象にしない） */
+  opacity:1 !important;
+}
+
+
 
 
 
